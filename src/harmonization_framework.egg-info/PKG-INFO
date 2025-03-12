@@ -1,9 +1,0 @@
-Metadata-Version: 2.2
-Name: harmonization-framework
-Version: 0.0.1
-Summary: General Purpose Harmonization Framework
-Author-email: jkyu <jkyu@stanford.edu>
-Classifier: Programming Language :: Python :: 3
-Classifier: Operating System :: OS Independent
-Requires-Python: >=3.10
-Description-Content-Type: text/markdown
