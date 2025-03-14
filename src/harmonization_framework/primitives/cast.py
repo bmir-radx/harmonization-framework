@@ -19,9 +19,6 @@ class Cast(PrimitiveOperation):
         text = f"Convert type from {self.source} to {self.target}"
         return text
 
-    def _serialize_string(self):
-        return f"Cast|source={self.source},target={self.target}"
-
     def _serialize(self):
         output = {
             "Operation": f"{self.__class__.__name__}",

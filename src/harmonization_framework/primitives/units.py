@@ -46,9 +46,6 @@ class ConvertUnits(PrimitiveOperation):
         text = f"Perform conversion from {self.source.value} to {self.target.value}"
         return text
 
-    def _serialize_string(self):
-        return f"ConvertUnits|source={self.source.value},target={self.target.value}"
-
     def _serialize(self):
         output = {
             "Operation": f"{self.__class__.__name__}",

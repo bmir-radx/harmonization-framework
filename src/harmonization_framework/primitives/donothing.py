@@ -12,9 +12,6 @@ class DoNothing(PrimitiveOperation):
     def from_options(cls):
         return DoNothing()
 
-    def _serialize_string(self):
-        return "DoNothing|"
-
     def _serialize(self):
         output = {
             "Operation": f"{self.__class__.__name__}",

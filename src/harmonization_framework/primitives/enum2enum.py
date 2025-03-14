@@ -13,12 +13,6 @@ class EnumToEnum(PrimitiveOperation):
         text = "Mapping:\n" + "\n".join(map_items)
         return text
 
-    def _serialize_string(self):
-        string = []
-        for key, value in self.mapping.items():
-            string.append(f"{key}:{value}")
-        return "EnumToEnum|map=" + ".".join(string)
-
     def _serialize(self):
         output = {
             "Operation": f"{self.__class__.__name__}",

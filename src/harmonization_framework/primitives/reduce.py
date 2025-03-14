@@ -31,9 +31,6 @@ class Reduce(PrimitiveOperation):
         text = f"Apply {self.reduction} reduction"
         return text
 
-    def _serialize_string(self):
-        return f"Reduce|reduction={self.reduction}"
-
     def _serialize(self):
         output = {
             "Operation": f"{self.__class__.__name__}",

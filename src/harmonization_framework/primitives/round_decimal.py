@@ -12,9 +12,6 @@ class Round(PrimitiveOperation):
         text = f"Round number to {self.precision} decimal precision"
         return text
 
-    def _serialize_string(self):
-        return f"Round|precision={self.precision}"
-
     def _serialize(self):
         output = {
             "Operation": f"{self.__class__.__name__}",
