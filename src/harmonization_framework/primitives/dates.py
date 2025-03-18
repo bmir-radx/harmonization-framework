@@ -1,8 +1,7 @@
 from .base import PrimitiveOperation, support_iterable
 from datetime import datetime
-from typing import Union
 
-class Scale(PrimitiveOperation):
+class ConvertDate(PrimitiveOperation):
     """
     Primitive for converting between date time formats.
     """
@@ -26,3 +25,9 @@ class Scale(PrimitiveOperation):
     def transform(self, value: str) -> str:
         dt = datetime.strptime(value, self.input_format)
         return dt.strftime(self.target_format)
+
+    @classmethod
+    def from_serialization(cls, serialization):
+        source_format = serialization["Source Format"]
+        target_format = serialization["Target Format"]
+        return ConvertDate(source_format, target_format)

@@ -5,7 +5,7 @@ class Scale(PrimitiveOperation):
     """
     Operator that applies a scaling factor to a numerical value.
     """
-    def __init__(self, scaling_factor: int):
+    def __init__(self, scaling_factor: Union[int, float]):
         self.scaling_factor = scaling_factor
 
     def __str__(self):
@@ -22,3 +22,8 @@ class Scale(PrimitiveOperation):
     @support_iterable
     def transform(self, value: Union[int, float]) -> Union[int, float]:
         return value * self.scaling_factor
+
+    @classmethod
+    def from_serialization(cls, serialization):
+        scaling_factor = float(serialization["Scaling Factor"])
+        return Scale(scaling_factor)
