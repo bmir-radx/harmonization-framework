@@ -1,15 +1,6 @@
-from .base import PrimitiveOperation
-from collections.abc import Iterable
+from .base import PrimitiveOperation, support_iterable
 from enum import Enum
 from typing import Any, List
-
-def support_iterable(transform):
-    def wrapper(self, values):
-        if isinstance(values, Iterable) and not isinstance(values, (str, bytes)):
-            if all(isinstance(v, Iterable) and not isinstance(v, (str, bytes)) for v in values):
-                return [transform(self, v) for v in values]
-        return transform(self, values)
-    return wrapper
 
 class Reduction(Enum):
     # boolean operations, e.g., for one-hot conversions
@@ -39,6 +30,7 @@ class Reduce(PrimitiveOperation):
         }
         return output
 
+    @support_iterable
     def transform(self, values: List[Any]) -> Any:
         match self.reduction:
             case Reduction.ANY:
@@ -54,7 +46,6 @@ class Reduce(PrimitiveOperation):
             case _:
                 return values
 
-    @support_iterable
     def onehot_reduction(self, values) -> int:
         total = sum(values)
         if total != 1:
@@ -65,3 +56,8 @@ class Reduce(PrimitiveOperation):
                 return i
         print("One-hot reduction error: no flipped bit found")
         return None
+
+    @classmethod
+    def from_serialization(cls, serialization):
+        reduction = Reduction(serialization["Reduction"])
+        return Reduce(reduction)

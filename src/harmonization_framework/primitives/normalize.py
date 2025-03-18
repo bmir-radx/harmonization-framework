@@ -1,17 +1,8 @@
 import re
 import unicodedata
 
-from .base import PrimitiveOperation
-from collections.abc import Iterable
+from .base import PrimitiveOperation, support_iterable
 from enum import Enum
-
-def support_iterable(transform):
-    def wrapper(self, values):
-        if isinstance(values, Iterable) and not isinstance(values, (str, bytes)):
-            if all(isinstance(v, Iterable) and not isinstance(v, (str, bytes)) for v in values):
-                return [transform(self, v) for v in values]
-        return transform(self, values)
-    return wrapper
 
 class Normalization(Enum):
     STRIP = "strip" # strip white space
