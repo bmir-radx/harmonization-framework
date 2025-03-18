@@ -19,6 +19,7 @@ class Reduction(Enum):
     # for N binary values, take the index of the flipped bit
     # if the target bit is not 1, need a mapping before reduction
     ONEHOT = "one-hot"
+    SUM = "sum"
 
 class Reduce(PrimitiveOperation):
     """
@@ -48,6 +49,8 @@ class Reduce(PrimitiveOperation):
                 return int(all(values))
             case Reduction.ONEHOT:
                 return self.onehot_reduction(values)
+            case Reduction.SUM:
+                return sum(values)
             case _:
                 return values
 
