@@ -24,12 +24,6 @@ class Bin(PrimitiveOperation):
         bins = [f"Label: {key}, Start: {b[0]}, End: {b[1]}" for key, b in self.bins]
         return text + "\n".join(bins)
 
-    def _serialize_string(self):
-        string = []
-        for key, (lower, upper) in self.bins:
-            string.append(f"{key}:{lower}-{upper}")
-        return "Bin|bins=" + ".".join(string)
-
     def _serialize(self):
         output = {
             "Operation": f"{self.__class__.__name__}",
