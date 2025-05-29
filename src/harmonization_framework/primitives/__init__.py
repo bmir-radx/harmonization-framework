@@ -11,3 +11,4 @@ from .substitute import Substitute
 from .threshold import Threshold
 from .truncate import Truncate
 from .units import ConvertUnits, Unit
+from .vocabulary import PrimitiveVocabulary
