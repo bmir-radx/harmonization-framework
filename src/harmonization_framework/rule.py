@@ -2,20 +2,15 @@ from typing import Any, List, Union
 from .element import DataElement
 from .primitives.base import PrimitiveOperation
 from .primitives import PrimitiveVocabulary, Bin, Cast, DoNothing, EnumToEnum, Reduce, Round, Threshold, Truncate, ConvertUnits
-from .utils import deserialize
 
 import json
 
 class HarmonizationRule:
-    def __init__(self, source: DataElement, target: DataElement, transformation: Union[str, List[PrimitiveOperation]]):
+    def __init__(self, source: DataElement, target: DataElement, transformation: List[PrimitiveOperation]):
         self.source = source
         self.target = target
-        if isinstance(transformation, str):
-            self.serialization = transformation
-            self._transform = deserialize.deserialize(transformation)
-        else:
-            self._transform = transformation
-            self.serialization = json.dumps(self.serialize())
+        self._transform = transformation
+        self.serialization = json.dumps(self.serialize())
 
     def serialize(self):
         output = {
