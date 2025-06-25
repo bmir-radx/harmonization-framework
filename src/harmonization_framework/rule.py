@@ -1,4 +1,4 @@
-from typing import Any, List, Union
+from typing import Any, List
 from .element import DataElement
 from .primitives.base import PrimitiveOperation
 from .primitives import PrimitiveVocabulary, Bin, Cast, DoNothing, EnumToEnum, Reduce, Round, Threshold, Truncate, ConvertUnits
