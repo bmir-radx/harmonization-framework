@@ -7,6 +7,7 @@ from harmonization_framework.api.routes.harmonize import harmonize_blueprint
 from harmonization_framework.api.routes.rules import rules_blueprint
 from harmonization_framework.api.routes.health import health_blueprint
 from harmonization_framework.api.routes.dictionaries import dictionaries_blueprint
+from harmonization_framework.api.routes.projects import projects_blueprint
 
 basedir = os.getcwd()
 db_path = os.path.join(basedir, "harmonization.db")
@@ -25,4 +26,5 @@ def create_app(config_name=None):
     app.register_blueprint(elements_blueprint, url_prefix="/elements")
     app.register_blueprint(health_blueprint, url_prefix="/health")
     app.register_blueprint(dictionaries_blueprint, url_prefix="/dictionaries")
+    app.register_blueprint(projects_blueprint, url_prefix="/projects")
     return app
