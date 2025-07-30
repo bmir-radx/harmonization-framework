@@ -3,7 +3,7 @@ from flask import Blueprint, request, jsonify
 from harmonization_framework.api.extensions import db
 from harmonization_framework.api.models import DataElement
 
-elements_blueprint = Blueprint("elements", __name__)
+elements_blueprint = Blueprint("data-elements", __name__)
 
 @elements_blueprint.route("/", methods=["GET"])
 def list_elements():

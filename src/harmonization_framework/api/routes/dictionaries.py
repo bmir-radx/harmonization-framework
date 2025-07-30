@@ -4,7 +4,7 @@ from werkzeug.utils import secure_filename
 from harmonization_framework.api.extensions import db
 from harmonization_framework.api.models import DataDictionary
 
-dictionaries_blueprint = Blueprint("dictionaries", __name__)
+dictionaries_blueprint = Blueprint("data-dictionaries", __name__)
 
 @dictionaries_blueprint.route("/", methods=["GET"])
 def list_dictionaries():

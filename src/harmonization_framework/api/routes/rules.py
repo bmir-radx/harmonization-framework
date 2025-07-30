@@ -4,7 +4,7 @@ from harmonization_framework.api.extensions import db
 from harmonization_framework.api.models import HarmonizationRule
 import uuid
 
-rules_blueprint = Blueprint("rules", __name__)
+rules_blueprint = Blueprint("harmonization-rules", __name__)
 
 @rules_blueprint.route("/", methods=["GET"])
 def get_all_rules():

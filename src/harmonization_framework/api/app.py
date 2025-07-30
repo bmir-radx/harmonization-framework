@@ -20,11 +20,11 @@ def create_app(config_name=None):
     
     register_extensions(app)
 
-    app.register_blueprint(rules_blueprint, url_prefix="/rules")
-    app.register_blueprint(files_blueprint, url_prefix="/files")
+    app.register_blueprint(rules_blueprint, url_prefix="/harmonization-rules")
+    app.register_blueprint(files_blueprint, url_prefix="/data-files")
     app.register_blueprint(harmonize_blueprint, url_prefix="/harmonize")
-    app.register_blueprint(elements_blueprint, url_prefix="/elements")
+    app.register_blueprint(elements_blueprint, url_prefix="/data-elements")
     app.register_blueprint(health_blueprint, url_prefix="/health")
-    app.register_blueprint(dictionaries_blueprint, url_prefix="/dictionaries")
+    app.register_blueprint(dictionaries_blueprint, url_prefix="/data-dictionaries")
     app.register_blueprint(projects_blueprint, url_prefix="/projects")
     return app

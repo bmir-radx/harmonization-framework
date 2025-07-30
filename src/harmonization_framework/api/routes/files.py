@@ -4,7 +4,7 @@ from werkzeug.utils import secure_filename
 from harmonization_framework.api.extensions import db
 from harmonization_framework.api.models import DataFile
 
-files_blueprint = Blueprint("files", __name__)
+files_blueprint = Blueprint("data-files", __name__)
 
 @files_blueprint.route("/", methods=["POST"])
 def upload_file():
