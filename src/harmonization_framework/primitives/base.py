@@ -5,15 +5,18 @@ import json
 
 class PrimitiveOperation:
     def __init__(self):
+        """Constructor for primitive-specitive parameters"""
         pass
 
     def __str__(self):
         return "Generic Primitive Operation"
 
     def transform(self, value: Any) -> Any:
+        """Primitive-specific transformation function"""
         pass
 
     def _serialize(self):
+        """Primitive-specific serialization"""
         pass
 
     def serialize(self):
@@ -24,6 +27,7 @@ class PrimitiveOperation:
 
     @classmethod
     def from_serialization(cls, serialization):
+        """Primtive-specific parsing of serialization"""
         pass
 
 def support_iterable(transform):
