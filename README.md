@@ -2,11 +2,16 @@
 
 ## Installation
 
-To install the harmonization framework, clone the repository and install the package into your python environment. Use of a virtual environment is recommended.
+To install the harmonization framework, clone the repository, create a virtual environment with the required dependencies, and install the package into your python environment. Use of a virtual environment is recommended.
 
 ```bash
 git clone git@github.com:bmir-radx/harmonization-framework.git
-pip intall .
+
+python3 -m venv venv 
+source venv/bin/activate
+pip install -r requirements
+
+pip install .
 ```
 
 ## Usage

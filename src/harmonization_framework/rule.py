@@ -6,7 +6,7 @@ from .primitives import PrimitiveVocabulary, Bin, Cast, DoNothing, EnumToEnum, R
 import json
 
 class HarmonizationRule:
-    def __init__(self, source: DataElement, target: DataElement, transformation: List[PrimitiveOperation]):
+    def __init__(self, source: DataElement, target: DataElement, transformation: List[PrimitiveOperation] = None):
         self.source = source
         self.target = target
         self._transform = transformation
@@ -33,6 +33,8 @@ class HarmonizationRule:
         """
         Apply transformation primitives in serial.
         """
+        if self._transform is None:
+            return value
         for transform in self._transform:
             value = transform(value)
         return value
