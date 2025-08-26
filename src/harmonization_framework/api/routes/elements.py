@@ -30,7 +30,8 @@ def create_element():
         description=data.get("description"),
         datatype=data.get("datatype"),
         permissible_values=data.get("permissible_values"),
-        dictionary_id=data.get("dictionary_id")
+        dictionary_id=data.get("dictionary_id"),
+        project_id=data.get("project_id"),
     )
     db.session.add(element)
     db.session.commit()

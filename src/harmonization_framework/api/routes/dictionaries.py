@@ -1,8 +1,8 @@
-import uuid, os
+import uuid, os, csv
 from flask import Blueprint, request, jsonify, current_app
 from werkzeug.utils import secure_filename
 from harmonization_framework.api.extensions import db
-from harmonization_framework.api.models import DataDictionary
+from harmonization_framework.api.models import DataDictionary, DataElement
 
 dictionaries_blueprint = Blueprint("data-dictionaries", __name__)
 
@@ -47,3 +47,35 @@ def delete_dictionary(dictionary_id):
     db.session.delete(dictionary)
     db.session.commit()
     return jsonify({"status": "deleted"})
+
+@dictionaries_blueprint.route("/<dictionary_id>/extract-data-elements", methods=["POST"])
+def extract_elements(dictionary_id):
+    try:
+        elements = extract_elements_from_dictionary(dictionary_id)
+        return jsonify({"created": len(elements), "elements": elements})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+def extract_elements_from_dictionary(dictionary_id):
+    dictionary = DataDictionary.query.get(dictionary_id)
+    if not dictionary:
+        raise ValueError("Dictionary not found")
+
+    elements = []
+    with open(dictionary.storage_path, newline="", encoding="utf-8") as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            element = DataElement(
+                id=str(uuid.uuid4()),
+                name=row.get("Id"),
+                description=row.get("Label"),
+                datatype=row.get("Datatype"),
+                permissible_values=row.get("Enumeration"),
+                dictionary_id=dictionary_id,
+                project_id=dictionary.project_id,
+            )
+            db.session.add(element)
+            elements.append(element)
+    
+    db.session.commit()
+    return [element.to_dict() for element in elements]
