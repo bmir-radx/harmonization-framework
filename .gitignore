@@ -2,3 +2,5 @@
 *.iml
 venv
 build
+__pycache__
+*.db
