@@ -31,9 +31,6 @@ class CustomUnit:
         self.value = value
 
 class ConvertUnits(PrimitiveOperation):
-    """
-    Operator that does nothing.
-    """
     def __init__(self, source: Union[Unit, str], target: Union[Unit, str]):
         if isinstance(source, str):
             source = CustomUnit(source)
