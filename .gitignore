@@ -1,0 +1,7 @@
+.idea
+*.iml
+venv
+build
+__pycache__
+*.db
+src/harmonization_framework.egg-info
