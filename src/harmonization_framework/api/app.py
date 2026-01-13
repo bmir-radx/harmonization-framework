@@ -1,3 +1,4 @@
+import logging
 import os
 from flask import Flask
 from harmonization_framework.api.extensions import db, register_extensions
@@ -11,12 +12,21 @@ from harmonization_framework.api.routes.projects import projects_blueprint
 basedir = os.getcwd()
 db_path = os.path.join(basedir, "harmonization.db")
 
+DEFAULT_UPLOAD_FOLDER = "/tmp/harmonization-uploads"
+
 def create_app(config_name=None):
     app = Flask(__name__, instance_relative_config=True)
     app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config["UPLOAD_FOLDER"] = "uploads"
-    
+
+    upload_folder = os.environ.get("UPLOAD_FOLDER", DEFAULT_UPLOAD_FOLDER)
+    app.config["UPLOAD_FOLDER"] = upload_folder
+
+    try:
+        os.makedirs(upload_folder, exist_ok=True)
+    except OSError as e:
+        logging.warning(f"Could not create upload directory '{upload_folder}': {e}")
+
     register_extensions(app)
 
     app.register_blueprint(rules_blueprint, url_prefix="/harmonization-rules")
