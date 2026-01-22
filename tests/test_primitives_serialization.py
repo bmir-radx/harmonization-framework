@@ -221,6 +221,11 @@ def test_offset_serialization_and_transform():
     assert primitive.transform([1, 2]) == [4, 5]
 
 
+def test_offset_rejects_non_numeric():
+    with pytest.raises(TypeError, match="Offset must be numeric"):
+        Offset("nope")
+
+
 def test_reduce_serialization_and_transform():
     primitive = Reduce(Reduction.SUM)
     payload = primitive.to_dict()
