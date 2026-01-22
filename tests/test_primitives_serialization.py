@@ -142,6 +142,18 @@ def test_threshold_serialization_and_transform():
     assert primitive.transform([-5, 5, 15]) == [0, 5, 10]
 
 
+def test_threshold_validation_and_type_promotion():
+    with pytest.raises(TypeError, match="bounds must be numeric"):
+        Threshold("low", 1)
+    with pytest.raises(ValueError, match="Lower bound"):
+        Threshold(5, 1)
+
+    int_bounds = Threshold(0, 10)
+    float_bounds = Threshold(0.0, 10.0)
+    assert isinstance(int_bounds.transform(5), int)
+    assert isinstance(float_bounds.transform(5), float)
+
+
 def test_truncate_serialization_and_transform():
     primitive = Truncate(3)
     payload = primitive.to_dict()
