@@ -166,6 +166,13 @@ def test_truncate_serialization_and_transform():
     assert primitive.transform(["abcdef", "xyz"]) == ["abc", "xyz"]
 
 
+def test_truncate_rejects_invalid_length():
+    with pytest.raises(TypeError, match="Length must be an integer"):
+        Truncate(3.5)
+    with pytest.raises(ValueError, match="non-negative"):
+        Truncate(-1)
+
+
 def test_convert_units_serialization_and_transform():
     primitive = ConvertUnits(Unit.INCH, Unit.CENTIMETER)
     payload = primitive.to_dict()
