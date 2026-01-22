@@ -8,10 +8,6 @@ class DoNothing(PrimitiveOperation):
     def __str__(self):
         return "Do Nothing"
 
-    @classmethod
-    def from_options(cls):
-        return DoNothing()
-
     def to_dict(self):
         output = {
             "operation": "do_nothing",
