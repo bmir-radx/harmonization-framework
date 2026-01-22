@@ -6,11 +6,18 @@ class Substitute(PrimitiveOperation):
     Apply a text substitution based on a regex pattern.
     """
     def __init__(self, expression: str, substitution: str):
+        """
+        Create a regex substitution operation.
+
+        Args:
+            expression: Regex pattern to match.
+            substitution: Replacement string for matches.
+        """
         self.expression = expression
         self.substitution = substitution
 
     def __str__(self):
-        text = f"Replace 'f{self.expression}' with 'f{self.substitution}'."
+        text = f"Replace '{self.expression}' with '{self.substitution}'."
         return text
 
     def to_dict(self):
