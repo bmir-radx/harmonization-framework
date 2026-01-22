@@ -8,7 +8,7 @@ class Normalization(Enum):
     STRIP = "strip" # strip white space
     LOWER = "lower" # convert to all lower case
     UPPER = "upper" # convert to all upper case
-    ACCENT = "remove_accent"
+    ACCENT = "remove_accents"
     PUNCTUATION = "remove_punctuation"
     SPECIAL = "remove_special_characters"
 
@@ -50,7 +50,7 @@ class NormalizeText(PrimitiveOperation):
 
     def remove_accents(self, value: str) -> str:
         """
-        Remove accents and diacritics.
+        Remove accents and diacritics using NFKC normalization.
         """
         normalized = unicodedata.normalize("NFKC", value)
         return "".join(char for char in normalized if not unicodedata.combining(char))
