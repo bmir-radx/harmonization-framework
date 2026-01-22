@@ -16,7 +16,14 @@ class PrimitiveOperation:
         pass
 
     def _serialize(self):
-        """Primitive-specific serialization"""
+        """
+        Return a JSON-serializable dict describing this operation.
+
+        Contract:
+        - Must include an "operation" key with a snake_case identifier.
+        - Other keys must be snake_case.
+        - Numeric values should be numbers (not strings).
+        """
         pass
 
     def serialize(self):

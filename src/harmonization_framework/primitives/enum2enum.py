@@ -15,8 +15,8 @@ class EnumToEnum(PrimitiveOperation):
 
     def _serialize(self):
         output = {
-            "Operation": f"{self.__class__.__name__}",
-            "Mapping": self.mapping,
+            "operation": "enum_to_enum",
+            "mapping": self.mapping,
         }
         return output
 
@@ -32,6 +32,6 @@ class EnumToEnum(PrimitiveOperation):
     def from_serialization(cls, serialization):
         mapping = {
             int(key): int(value)
-            for key, value in serialization["Mapping"].items()
+            for key, value in serialization["mapping"].items()
         }
         return EnumToEnum(mapping)

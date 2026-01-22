@@ -14,8 +14,8 @@ class Round(PrimitiveOperation):
 
     def _serialize(self):
         output = {
-            "Operation": f"{self.__class__.__name__}",
-            "Precision": f"{self.precision}",
+            "operation": "round",
+            "precision": self.precision,
         }
         return output
 
@@ -25,5 +25,5 @@ class Round(PrimitiveOperation):
 
     @classmethod
     def from_serialization(cls, serialization):
-        precision = int(serialization["Precision"])
+        precision = int(serialization["precision"])
         return Round(precision)

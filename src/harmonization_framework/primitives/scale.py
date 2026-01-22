@@ -14,8 +14,8 @@ class Scale(PrimitiveOperation):
 
     def _serialize(self):
         output = {
-            "Operation": f"{self.__class__.__name__}",
-            "Scaling Factor": f"{self.scaling_factor}",
+            "operation": "scale",
+            "scaling_factor": self.scaling_factor,
         }
         return output
 
@@ -25,5 +25,5 @@ class Scale(PrimitiveOperation):
 
     @classmethod
     def from_serialization(cls, serialization):
-        scaling_factor = float(serialization["Scaling Factor"])
+        scaling_factor = float(serialization["scaling_factor"])
         return Scale(scaling_factor)

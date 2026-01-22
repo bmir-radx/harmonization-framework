@@ -21,9 +21,9 @@ class Cast(PrimitiveOperation):
 
     def _serialize(self):
         output = {
-            "Operation": f"{self.__class__.__name__}",
-            "Source": f"{self.source}",
-            "Target": f"{self.target}",
+            "operation": "cast",
+            "source": self.source,
+            "target": self.target,
         }
         return output
 
@@ -39,4 +39,4 @@ class Cast(PrimitiveOperation):
 
     @classmethod
     def from_serialization(cls, serialization):
-        return Cast(serialization["Source"], serialization["Target"])
+        return Cast(serialization["source"], serialization["target"])

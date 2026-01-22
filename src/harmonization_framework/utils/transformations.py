@@ -59,7 +59,7 @@ def replay(log_file: str, datasets: Dict[str, pd.DataFrame]):
 
     results = {}
     for dataset_name in events:
-        pairs = [(event["action"]["Source"], event["action"]["Target"]) for event in events[dataset_name]]
+        pairs = [(event["action"]["source"], event["action"]["target"]) for event in events[dataset_name]]
         result = harmonize_dataset(
             datasets[dataset_name],
             pairs,

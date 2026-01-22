@@ -45,9 +45,9 @@ class ConvertUnits(PrimitiveOperation):
 
     def _serialize(self):
         output = {
-            "Operation": f"{self.__class__.__name__}",
-            "Source": f"{self.source.value}",
-            "Target": f"{self.target.value}",
+            "operation": "convert_units",
+            "source_unit": self.source.value,
+            "target_unit": self.target.value,
         }
         return output
 
@@ -58,6 +58,6 @@ class ConvertUnits(PrimitiveOperation):
 
     @classmethod
     def from_serialization(cls, serialization):
-        source = CustomUnit(serialization["Source"])
-        target = CustomUnit(serialization["Target"])
+        source = CustomUnit(serialization["source_unit"])
+        target = CustomUnit(serialization["target_unit"])
         return ConvertUnits(source, target)

@@ -14,8 +14,8 @@ class Offset(PrimitiveOperation):
 
     def _serialize(self):
         output = {
-            "Operation": f"{self.__class__.__name__}",
-            "Offset": f"{self.offset}",
+            "operation": "offset",
+            "offset": self.offset,
         }
         return output
 
@@ -25,5 +25,5 @@ class Offset(PrimitiveOperation):
 
     @classmethod
     def from_serialization(cls, serialization):
-        offset = float(serialization["Offset"])
+        offset = float(serialization["offset"])
         return Offset(offset)

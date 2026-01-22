@@ -86,17 +86,17 @@ curl -X POST http://localhost:5000/harmonization-rules/ \
     "project_id": "test_project",
     "version": 1,
     "rule_json":  {
-      "Source": "commute_distance_km",
-      "Target": "commute_distance_miles",
-      "Operations": [
+      "source": "commute_distance_km",
+      "target": "commute_distance_miles",
+      "operations": [
         {
-          "Operation": "ConvertUnits",
-          "Source": "kilometers",
-          "Target": "miles"
+          "operation": "convert_units",
+          "source_unit": "kilometers",
+          "target_unit": "miles"
         },
         {
-          "Operation": "Round",
-          "Precision": "2"
+          "operation": "round",
+          "precision": 2
         }
       ]
     }
@@ -111,12 +111,12 @@ curl -X POST http://localhost:5000/harmonization-rules/ \
     "project_id": "test_project",
     "version": 1,
     "rule_json":  {
-      "Source": "employment",
-      "Target": "nih_employment",
-      "Operations": [
+      "source": "employment",
+      "target": "nih_employment",
+      "operations": [
         {
-          "Operation": "EnumToEnum",
-          "Mapping": {
+          "operation": "enum_to_enum",
+          "mapping": {
             "1": 0,
             "2": 0,
             "3": 1
