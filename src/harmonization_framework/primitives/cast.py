@@ -9,7 +9,10 @@ class CastType(Enum):
 
 class Cast(PrimitiveOperation):
     """
-    Cast type.
+    Cast values between supported primitive types.
+
+    Supported targets: "text", "integer", "boolean".
+    Boolean casting accepts common string/number representations.
     """
     def __init__(self, source: str, target: str):
         if target not in {member.value for member in CastType}:
