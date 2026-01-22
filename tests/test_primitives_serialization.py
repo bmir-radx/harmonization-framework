@@ -280,6 +280,11 @@ def test_substitute_serialization_and_transform():
     assert primitive.transform(["foo", "food"]) == ["bar", "bard"]
 
 
+def test_substitute_rejects_invalid_regex():
+    with pytest.raises(ValueError, match="Invalid regex pattern"):
+        Substitute(r"[", "x")
+
+
 def test_do_nothing_serialization_and_transform():
     primitive = DoNothing()
     payload = primitive.to_dict()
