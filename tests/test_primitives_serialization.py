@@ -189,6 +189,11 @@ def test_convert_units_serialization_and_transform():
     assert primitive.transform([1, 2]) == pytest.approx([2.54, 5.08], rel=1e-6)
 
 
+def test_convert_units_rejects_invalid_units():
+    with pytest.raises(ValueError, match="Invalid units"):
+        ConvertUnits("nope", "cm")
+
+
 def test_normalize_text_serialization_and_transform():
     primitive = NormalizeText(Normalization.LOWER)
     payload = primitive.to_dict()
