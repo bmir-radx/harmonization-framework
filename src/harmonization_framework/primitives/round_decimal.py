@@ -12,7 +12,7 @@ class Round(PrimitiveOperation):
         text = f"Round number to {self.precision} decimal precision"
         return text
 
-    def _serialize(self):
+    def to_dict(self):
         output = {
             "operation": "round",
             "precision": self.precision,

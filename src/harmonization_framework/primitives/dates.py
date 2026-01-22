@@ -13,7 +13,7 @@ class ConvertDate(PrimitiveOperation):
         text = f"Convert date time format from {self.source_format} to {self.target_format}"
         return text
 
-    def _serialize(self):
+    def to_dict(self):
         output = {
             "operation": "convert_date",
             "source_format": self.source_format,

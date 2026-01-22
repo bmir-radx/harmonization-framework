@@ -11,7 +11,7 @@ class Truncate(PrimitiveOperation):
         text = f"Truncate text to length {self.length}"
         return text
 
-    def _serialize(self):
+    def to_dict(self):
         output = {
             "operation": "truncate",
             "length": self.length,

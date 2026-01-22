@@ -23,7 +23,7 @@ class NormalizeText(PrimitiveOperation):
         text = f"Apply {self.normalization} normalization"
         return text
 
-    def _serialize(self):
+    def to_dict(self):
         output = {
             "operation": "normalize_text",
             "normalization": self.normalization.value,

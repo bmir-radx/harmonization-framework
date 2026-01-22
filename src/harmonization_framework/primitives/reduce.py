@@ -23,7 +23,7 @@ class Reduce(PrimitiveOperation):
         text = f"Apply {self.reduction} reduction"
         return text
 
-    def _serialize(self):
+    def to_dict(self):
         output = {
             "operation": "reduce",
             "reduction": self.reduction.value,

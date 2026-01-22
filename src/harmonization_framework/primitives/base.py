@@ -15,7 +15,7 @@ class PrimitiveOperation:
         """Primitive-specific transformation function"""
         pass
 
-    def _serialize(self):
+    def to_dict(self):
         """
         Return a JSON-serializable dict describing this operation.
 
@@ -27,7 +27,7 @@ class PrimitiveOperation:
         pass
 
     def serialize(self):
-        return json.dumps(self._serialize())
+        return json.dumps(self.to_dict())
 
     def __call__(self, value: Any) -> Any:
         return self.transform(value)

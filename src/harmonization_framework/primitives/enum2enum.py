@@ -13,7 +13,7 @@ class EnumToEnum(PrimitiveOperation):
         text = "Mapping:\n" + "\n".join(map_items)
         return text
 
-    def _serialize(self):
+    def to_dict(self):
         output = {
             "operation": "enum_to_enum",
             "mapping": self.mapping,

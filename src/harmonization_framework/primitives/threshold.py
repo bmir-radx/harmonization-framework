@@ -13,7 +13,7 @@ class Threshold(PrimitiveOperation):
         text = f"Apply Numerical Thresholds: Lower = {self.lower}, Upper = {self.upper}"
         return text
 
-    def _serialize(self):
+    def to_dict(self):
         output = {
             "operation": "threshold",
             "lower": self.lower,

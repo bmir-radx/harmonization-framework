@@ -12,7 +12,7 @@ class DoNothing(PrimitiveOperation):
     def from_options(cls):
         return DoNothing()
 
-    def _serialize(self):
+    def to_dict(self):
         output = {
             "operation": "do_nothing",
         }

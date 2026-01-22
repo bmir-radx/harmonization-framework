@@ -19,7 +19,7 @@ class Cast(PrimitiveOperation):
         text = f"Convert type from {self.source} to {self.target}"
         return text
 
-    def _serialize(self):
+    def to_dict(self):
         output = {
             "operation": "cast",
             "source": self.source,

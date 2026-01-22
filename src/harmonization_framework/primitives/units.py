@@ -43,7 +43,7 @@ class ConvertUnits(PrimitiveOperation):
         text = f"Perform conversion from {self.source.value} to {self.target.value}"
         return text
 
-    def _serialize(self):
+    def to_dict(self):
         output = {
             "operation": "convert_units",
             "source_unit": self.source.value,

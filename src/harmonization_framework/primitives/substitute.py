@@ -13,7 +13,7 @@ class Substitute(PrimitiveOperation):
         text = f"Replace 'f{self.expression}' with 'f{self.substitution}'."
         return text
 
-    def _serialize(self):
+    def to_dict(self):
         output = {
             "operation": "substitute",
             "expression": self.expression,

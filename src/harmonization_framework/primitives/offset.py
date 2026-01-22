@@ -12,7 +12,7 @@ class Offset(PrimitiveOperation):
         text = f"Offset by a value {self.offset}"
         return text
 
-    def _serialize(self):
+    def to_dict(self):
         output = {
             "operation": "offset",
             "offset": self.offset,

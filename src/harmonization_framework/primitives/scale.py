@@ -12,7 +12,7 @@ class Scale(PrimitiveOperation):
         text = f"Scale by factor {self.scaling_factor}"
         return text
 
-    def _serialize(self):
+    def to_dict(self):
         output = {
             "operation": "scale",
             "scaling_factor": self.scaling_factor,
