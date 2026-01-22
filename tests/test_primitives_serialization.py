@@ -122,6 +122,13 @@ def test_round_serialization_and_transform():
     assert primitive.transform([1.234, 2.345]) == [1.23, 2.35]
 
 
+def test_round_rejects_invalid_precision():
+    with pytest.raises(TypeError, match="Precision must be an integer"):
+        Round(2.5)
+    with pytest.raises(ValueError, match="non-negative"):
+        Round(-1)
+
+
 def test_threshold_serialization_and_transform():
     primitive = Threshold(0, 10)
     payload = primitive.to_dict()
