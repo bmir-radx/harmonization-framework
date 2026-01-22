@@ -25,8 +25,8 @@ class NormalizeText(PrimitiveOperation):
 
     def _serialize(self):
         output = {
-            "Operation": f"{self.__class__.__name__}",
-            "Normalization": f"{self.reduction}",
+            "operation": "normalize_text",
+            "normalization": self.normalization.value,
         }
         return output
 
@@ -70,5 +70,5 @@ class NormalizeText(PrimitiveOperation):
 
     @classmethod
     def from_serialization(cls, serialization):
-        normalization = Normalization(serialization["Normalization"])
+        normalization = Normalization(serialization["normalization"])
         return NormalizeText(normalization)

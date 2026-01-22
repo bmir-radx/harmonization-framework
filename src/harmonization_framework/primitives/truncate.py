@@ -13,8 +13,8 @@ class Truncate(PrimitiveOperation):
 
     def _serialize(self):
         output = {
-            "Operation": f"{self.__class__.__name__}",
-            "Length": f"{self.length}",
+            "operation": "truncate",
+            "length": self.length,
         }
         return output
 
@@ -24,4 +24,4 @@ class Truncate(PrimitiveOperation):
 
     @classmethod
     def from_serialization(cls, serialization):
-        return Truncate(int(serialization["Length"]))
+        return Truncate(int(serialization["length"]))

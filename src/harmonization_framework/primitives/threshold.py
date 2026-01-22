@@ -15,9 +15,9 @@ class Threshold(PrimitiveOperation):
 
     def _serialize(self):
         output = {
-            "Operation": f"{self.__class__.__name__}",
-            "Lower": f"{self.lower}",
-            "Upper": f"{self.upper}",
+            "operation": "threshold",
+            "lower": self.lower,
+            "upper": self.upper,
         }
         return output
 
@@ -31,6 +31,6 @@ class Threshold(PrimitiveOperation):
 
     @classmethod
     def from_serialization(cls, serialization):
-        lower = float(serialization["Lower"])
-        upper = float(serialization["Upper"])
+        lower = float(serialization["lower"])
+        upper = float(serialization["upper"])
         return Threshold(lower, upper)

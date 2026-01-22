@@ -15,19 +15,19 @@ class ConvertDate(PrimitiveOperation):
 
     def _serialize(self):
         output = {
-            "Operation": f"{self.__class__.__name__}",
-            "Source Format": f"{self.source_format}",
-            "Target Format": f"{self.target_format}",
+            "operation": "convert_date",
+            "source_format": self.source_format,
+            "target_format": self.target_format,
         }
         return output
 
     @support_iterable
     def transform(self, value: str) -> str:
-        dt = datetime.strptime(value, self.input_format)
+        dt = datetime.strptime(value, self.source_format)
         return dt.strftime(self.target_format)
 
     @classmethod
     def from_serialization(cls, serialization):
-        source_format = serialization["Source Format"]
-        target_format = serialization["Target Format"]
+        source_format = serialization["source_format"]
+        target_format = serialization["target_format"]
         return ConvertDate(source_format, target_format)

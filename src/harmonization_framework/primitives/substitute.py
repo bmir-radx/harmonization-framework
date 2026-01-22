@@ -15,9 +15,9 @@ class Substitute(PrimitiveOperation):
 
     def _serialize(self):
         output = {
-            "Operation": f"{self.__class__.__name__}",
-            "Expression": f"{self.expression}",
-            "Substitution": f"{self.substitution}",
+            "operation": "substitute",
+            "expression": self.expression,
+            "substitution": self.substitution,
         }
         return output
 
@@ -27,6 +27,6 @@ class Substitute(PrimitiveOperation):
 
     @classmethod
     def from_serialization(cls, serialization):
-        expression = serialization["Expression"]
-        substitution = serialization["Substitution"]
+        expression = serialization["expression"]
+        substitution = serialization["substitution"]
         return Substitute(expression, substitution)

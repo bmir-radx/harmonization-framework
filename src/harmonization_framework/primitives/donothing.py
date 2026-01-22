@@ -14,7 +14,7 @@ class DoNothing(PrimitiveOperation):
 
     def _serialize(self):
         output = {
-            "Operation": f"{self.__class__.__name__}",
+            "operation": "do_nothing",
         }
         return output
 

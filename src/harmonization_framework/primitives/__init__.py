@@ -4,6 +4,8 @@ from .cast import Cast
 from .dates import ConvertDate
 from .donothing import DoNothing
 from .enum2enum import EnumToEnum
+from .normalize import NormalizeText
+from .offset import Offset
 from .reduce import Reduce
 from .round_decimal import Round
 from .scale import Scale

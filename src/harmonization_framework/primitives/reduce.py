@@ -25,8 +25,8 @@ class Reduce(PrimitiveOperation):
 
     def _serialize(self):
         output = {
-            "Operation": f"{self.__class__.__name__}",
-            "Reduction": f"{self.reduction}",
+            "operation": "reduce",
+            "reduction": self.reduction.value,
         }
         return output
 
@@ -59,5 +59,5 @@ class Reduce(PrimitiveOperation):
 
     @classmethod
     def from_serialization(cls, serialization):
-        reduction = Reduction(serialization["Reduction"])
+        reduction = Reduction(serialization["reduction"])
         return Reduce(reduction)

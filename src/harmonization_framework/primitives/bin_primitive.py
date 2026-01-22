@@ -26,9 +26,9 @@ class Bin(PrimitiveOperation):
 
     def _serialize(self):
         output = {
-            "Operation": f"{self.__class__.__name__}",
-            "Bins": [
-                {"Label": label, "Start": start, "End": end}
+            "operation": "bin",
+            "bins": [
+                {"label": label, "start": start, "end": end}
                 for label, (start, end) in self.bins
             ],
         }
@@ -71,7 +71,7 @@ class Bin(PrimitiveOperation):
     @classmethod
     def from_serialization(cls, serialization):
         bins = [
-            (int(interval["Label"]), (int(interval["Start"]), int(interval["End"])))
-            for interval in serialization["Bins"]
+            (int(interval["label"]), (int(interval["start"]), int(interval["end"])))
+            for interval in serialization["bins"]
         ]
         return Bin(bins)
