@@ -9,6 +9,14 @@ class EnumToEnum(PrimitiveOperation):
     If strict is False, missing mappings return the configured default (or None).
     """
     def __init__(self, mapping: Dict[int, int], default: Any = None, strict: bool = False):
+        """
+        Create a mapping from source enum values to target enum values.
+
+        Args:
+            mapping: Dict of source -> target values.
+            default: Value to return when a mapping is missing (strict=False only).
+            strict: When True, raise a KeyError for missing mappings.
+        """
         self.mapping = mapping
         self.default = default
         self.strict = strict
@@ -19,6 +27,9 @@ class EnumToEnum(PrimitiveOperation):
         return text
 
     def to_dict(self):
+        """
+        Serialize this mapping to a JSON-friendly dict.
+        """
         output = {
             "operation": "enum_to_enum",
             "mapping": self.mapping,
@@ -30,6 +41,9 @@ class EnumToEnum(PrimitiveOperation):
 
     @support_iterable
     def transform(self, value: Any) -> Any:
+        """
+        Map a single value using the configured mapping.
+        """
         if value not in self.mapping:
             if self.strict:
                 raise KeyError(f"Missing mapping for value: {value}")
@@ -40,6 +54,9 @@ class EnumToEnum(PrimitiveOperation):
 
     @classmethod
     def from_serialization(cls, serialization):
+        """
+        Reconstruct an EnumToEnum mapping from a serialized dict.
+        """
         mapping = {
             int(key): int(value)
             for key, value in serialization["mapping"].items()
