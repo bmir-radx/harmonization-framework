@@ -1,4 +1,4 @@
-from .base import PrimitiveOperation, support_iterable
+from .base import PrimitiveOperation
 from enum import Enum
 from typing import Any, List
 
@@ -30,7 +30,6 @@ class Reduce(PrimitiveOperation):
         }
         return output
 
-    @support_iterable
     def transform(self, values: List[Any]) -> Any:
         match self.reduction:
             case Reduction.ANY:

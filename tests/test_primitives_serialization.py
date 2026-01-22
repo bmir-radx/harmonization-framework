@@ -39,6 +39,16 @@ def test_bin_serialization_and_transform():
     assert primitive.transform([3, 12]) == [low_label, high_label]
 
 
+def test_bin_rejects_overlapping_bins():
+    with pytest.raises(ValueError, match="Overlapping bins detected"):
+        Bin([(1, (0, 10)), (2, (10, 20))])
+
+
+def test_bin_rejects_inverted_ranges():
+    with pytest.raises(ValueError, match="Invalid bin range"):
+        Bin([(1, (5, 2))])
+
+
 def test_cast_serialization_and_transform():
     primitive = Cast("text", "integer")
     payload = primitive.to_dict()
@@ -178,8 +188,7 @@ def test_reduce_serialization_and_transform():
     roundtrip = Reduce.from_serialization(payload)
     assert roundtrip.to_dict() == payload
 
-    values = [[1, 2, 3], [4, 5]]
-    assert primitive.transform(values) == [6, 9]
+    assert primitive.transform([1, 2, 3]) == 6
 
 
 def test_substitute_serialization_and_transform():
