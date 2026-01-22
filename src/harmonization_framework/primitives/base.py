@@ -1,5 +1,4 @@
 from typing import Any
-from collections.abc import Iterable
 
 import json
 
@@ -46,8 +45,7 @@ class PrimitiveOperation:
 
 def support_iterable(transform):
     def wrapper(self, value):
-        if isinstance(value, Iterable) and not isinstance(value, (str, bytes)):
+        if isinstance(value, (list, tuple)):
             return [transform(self, v) for v in value]
-        else:
-            return transform(self, value)
+        return transform(self, value)
     return wrapper
