@@ -27,6 +27,13 @@ class PrimitiveOperation:
         pass
 
     def serialize(self):
+        """
+        Return a JSON string representation of this operation.
+
+        Notes:
+        - Delegates to `to_dict()` for the schema definition.
+        - Output is a compact JSON string suitable for storage or APIs.
+        """
         return json.dumps(self.to_dict())
 
     def __call__(self, value: Any) -> Any:
