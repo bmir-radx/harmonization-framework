@@ -15,6 +15,9 @@ class Reduction(Enum):
 class Reduce(PrimitiveOperation):
     """
     Reduction operation that transforms N inputs to 1 output.
+
+    This primitive expects a single list/tuple of values as input and returns
+    one reduced value (e.g., sum, any, all). It does not accept scalar input.
     """
     def __init__(self, reduction: Reduction):
         self.reduction = reduction
@@ -24,6 +27,9 @@ class Reduce(PrimitiveOperation):
         return text
 
     def to_dict(self):
+        """
+        Serialize this reduction to a JSON-friendly dict.
+        """
         output = {
             "operation": "reduce",
             "reduction": self.reduction.value,
@@ -31,6 +37,14 @@ class Reduce(PrimitiveOperation):
         return output
 
     def transform(self, values: List[Any]) -> Any:
+        """
+        Reduce a list of values according to the configured reduction.
+
+        Supported reductions:
+        - any/none/all: boolean reductions (return 0/1)
+        - one-hot: return the index of the single active bit (or None on error)
+        - sum: numeric sum
+        """
         match self.reduction:
             case Reduction.ANY:
                 return int(any(values))
@@ -46,6 +60,9 @@ class Reduce(PrimitiveOperation):
                 return values
 
     def onehot_reduction(self, values) -> int:
+        """
+        Return the index of the single truthy value in a one-hot vector.
+        """
         total = sum(values)
         if total != 1:
             print(f"One-hot reduction error: sum = {total}")
@@ -58,5 +75,8 @@ class Reduce(PrimitiveOperation):
 
     @classmethod
     def from_serialization(cls, serialization):
+        """
+        Reconstruct a Reduce operation from a serialized dict.
+        """
         reduction = Reduction(serialization["reduction"])
         return Reduce(reduction)
