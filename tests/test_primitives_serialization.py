@@ -238,6 +238,24 @@ def test_reduce_serialization_and_transform():
     assert primitive.transform([1, 2, 3]) == 6
 
 
+def test_reduce_rejects_non_list():
+    primitive = Reduce(Reduction.SUM)
+    with pytest.raises(TypeError, match="list or tuple"):
+        primitive.transform(5)
+
+
+def test_reduce_rejects_empty_list():
+    primitive = Reduce(Reduction.ANY)
+    with pytest.raises(ValueError, match="non-empty"):
+        primitive.transform([])
+
+
+def test_reduce_onehot_validates_values():
+    primitive = Reduce(Reduction.ONEHOT)
+    with pytest.raises(ValueError, match="0/1"):
+        primitive.transform([0, 2, 0])
+
+
 def test_substitute_serialization_and_transform():
     primitive = Substitute(r"foo", "bar")
     payload = primitive.to_dict()

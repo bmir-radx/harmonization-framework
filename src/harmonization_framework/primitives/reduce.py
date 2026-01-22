@@ -45,6 +45,10 @@ class Reduce(PrimitiveOperation):
         - one-hot: return the index of the single active bit (or None on error)
         - sum: numeric sum
         """
+        if not isinstance(values, (list, tuple)):
+            raise TypeError(f"Reduce expects a list or tuple, got {type(values).__name__}")
+        if len(values) == 0:
+            raise ValueError("Reduce expects a non-empty list of values")
         match self.reduction:
             case Reduction.ANY:
                 return int(any(values))
@@ -63,6 +67,9 @@ class Reduce(PrimitiveOperation):
         """
         Return the index of the single truthy value in a one-hot vector.
         """
+        for value in values:
+            if value not in (0, 1, True, False):
+                raise ValueError(f"One-hot reduction expects 0/1 values, got {value!r}")
         total = sum(values)
         if total != 1:
             print(f"One-hot reduction error: sum = {total}")
