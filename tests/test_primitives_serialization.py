@@ -70,6 +70,15 @@ def test_cast_boolean():
     assert primitive.transform([True, False]) == [True, False]
 
 
+def test_cast_decimal_and_float():
+    decimal_cast = Cast("text", "decimal")
+    float_cast = Cast("text", "float")
+
+    assert decimal_cast.transform("3.5") == pytest.approx(3.5)
+    assert float_cast.transform("4.25") == pytest.approx(4.25)
+    assert float_cast.transform([1, 2.5]) == [1.0, 2.5]
+
+
 def test_cast_validation_rejects_unknown_target():
     with pytest.raises(ValueError, match="Unsupported cast target"):
         Cast("text", "unknown")

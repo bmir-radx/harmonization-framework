@@ -6,12 +6,14 @@ class CastType(Enum):
     TEXT = "text"
     INTEGER = "integer"
     BOOLEAN = "boolean"
+    DECIMAL = "decimal"
+    FLOAT = "float"
 
 class Cast(PrimitiveOperation):
     """
     Cast values between supported primitive types.
 
-    Supported targets: "text", "integer", "boolean".
+    Supported targets: "text", "integer", "boolean", "decimal", "float".
     Boolean casting accepts common string/number representations.
     """
     def __init__(self, source: str, target: str):
@@ -41,6 +43,10 @@ class Cast(PrimitiveOperation):
                 return int(value)
             case "boolean":
                 return self._to_boolean(value)
+            case "decimal":
+                return float(value)
+            case "float":
+                return float(value)
             case _:
                 return value
 
