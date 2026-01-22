@@ -3,7 +3,11 @@ from datetime import datetime
 
 class ConvertDate(PrimitiveOperation):
     """
-    Primitive for converting between date time formats.
+    Convert between date/time string formats using strptime/strftime.
+
+    Examples:
+    - source_format="%Y-%m-%d", target_format="%m/%d/%Y"
+    - source_format="%Y-%m-%d %H:%M:%S", target_format="%d-%b-%Y %H:%M"
     """
     def __init__(self, source_format: str, target_format: str):
         self.source_format = source_format
@@ -23,7 +27,14 @@ class ConvertDate(PrimitiveOperation):
 
     @support_iterable
     def transform(self, value: str) -> str:
-        dt = datetime.strptime(value, self.source_format)
+        try:
+            dt = datetime.strptime(value, self.source_format)
+        except ValueError as exc:
+            message = (
+                "Failed to parse date/time value "
+                f"{value!r} with source_format={self.source_format!r}"
+            )
+            raise ValueError(message) from exc
         return dt.strftime(self.target_format)
 
     @classmethod

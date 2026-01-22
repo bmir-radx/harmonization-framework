@@ -178,6 +178,12 @@ def test_convert_date_serialization_and_transform():
     assert primitive.transform(["2026-01-22", "2026-12-31"]) == ["01/22/2026", "12/31/2026"]
 
 
+def test_convert_date_invalid_input_raises_with_context():
+    primitive = ConvertDate("%Y-%m-%d", "%m/%d/%Y")
+    with pytest.raises(ValueError, match="source_format"):
+        primitive.transform("01/22/2026")
+
+
 def test_scale_serialization_and_transform():
     primitive = Scale(2.5)
     payload = primitive.to_dict()
