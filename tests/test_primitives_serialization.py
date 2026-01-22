@@ -90,11 +90,24 @@ def test_enum_to_enum_serialization_and_transform():
 
     assert payload["operation"] == "enum_to_enum"
     assert payload["mapping"] == {1: 10, 2: 20}
+    assert payload["strict"] is False
 
     roundtrip = EnumToEnum.from_serialization(payload)
     assert roundtrip.to_dict() == payload
     assert primitive.transform(1) == 10
     assert primitive.transform([1, 2]) == [10, 20]
+
+
+def test_enum_to_enum_default_for_missing_value():
+    primitive = EnumToEnum({1: 10}, default=-1)
+    assert primitive.transform(2) == -1
+    assert primitive.transform([1, 2]) == [10, -1]
+
+
+def test_enum_to_enum_strict_raises_for_missing_value():
+    primitive = EnumToEnum({1: 10}, strict=True)
+    with pytest.raises(KeyError, match="Missing mapping"):
+        primitive.transform(2)
 
 
 def test_round_serialization_and_transform():
