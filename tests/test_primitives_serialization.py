@@ -61,6 +61,20 @@ def test_cast_serialization_and_transform():
     assert primitive.transform(["1", "2"]) == [1, 2]
 
 
+def test_cast_boolean():
+    primitive = Cast("text", "boolean")
+    assert primitive.transform("true") is True
+    assert primitive.transform("0") is False
+    assert primitive.transform(1) is True
+    assert primitive.transform(0) is False
+    assert primitive.transform([True, False]) == [True, False]
+
+
+def test_cast_validation_rejects_unknown_target():
+    with pytest.raises(ValueError, match="Unsupported cast target"):
+        Cast("text", "unknown")
+
+
 def test_enum_to_enum_serialization_and_transform():
     primitive = EnumToEnum({1: 10, 2: 20})
     payload = primitive.to_dict()
