@@ -44,6 +44,18 @@ class PrimitiveOperation:
         pass
 
 def support_iterable(transform):
+    """
+    Decorator that enables primitives to accept either a scalar or a list/tuple.
+
+    Behavior:
+    - If the input is a list or tuple, apply the wrapped transform to each element
+      and return a list of results.
+    - Otherwise, treat the input as a scalar and return a single transformed value.
+
+    Rationale:
+    This keeps primitive implementations simple while allowing callers to pass
+    small batches without relying on pandas/numpy vectorization.
+    """
     def wrapper(self, value):
         if isinstance(value, (list, tuple)):
             return [transform(self, v) for v in value]
