@@ -216,6 +216,11 @@ def test_scale_serialization_and_transform():
     assert primitive.transform([2, 4]) == [5.0, 10.0]
 
 
+def test_scale_rejects_non_numeric():
+    with pytest.raises(TypeError, match="Scaling factor must be numeric"):
+        Scale("nope")
+
+
 def test_offset_serialization_and_transform():
     primitive = Offset(3)
     payload = primitive.to_dict()
