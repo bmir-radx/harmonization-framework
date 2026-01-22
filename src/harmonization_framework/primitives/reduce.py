@@ -1,4 +1,4 @@
-from .base import PrimitiveOperation, support_iterable
+from .base import PrimitiveOperation
 from enum import Enum
 from typing import Any, List
 
@@ -15,6 +15,9 @@ class Reduction(Enum):
 class Reduce(PrimitiveOperation):
     """
     Reduction operation that transforms N inputs to 1 output.
+
+    This primitive expects a single list/tuple of values as input and returns
+    one reduced value (e.g., sum, any, all). It does not accept scalar input.
     """
     def __init__(self, reduction: Reduction):
         self.reduction = reduction
@@ -23,15 +26,29 @@ class Reduce(PrimitiveOperation):
         text = f"Apply {self.reduction} reduction"
         return text
 
-    def _serialize(self):
+    def to_dict(self):
+        """
+        Serialize this reduction to a JSON-friendly dict.
+        """
         output = {
             "operation": "reduce",
             "reduction": self.reduction.value,
         }
         return output
 
-    @support_iterable
     def transform(self, values: List[Any]) -> Any:
+        """
+        Reduce a list of values according to the configured reduction.
+
+        Supported reductions:
+        - any/none/all: boolean reductions (return 0/1)
+        - one-hot: return the index of the single active bit (or None on error)
+        - sum: numeric sum
+        """
+        if not isinstance(values, (list, tuple)):
+            raise TypeError(f"Reduce expects a list or tuple, got {type(values).__name__}")
+        if len(values) == 0:
+            raise ValueError("Reduce expects a non-empty list of values")
         match self.reduction:
             case Reduction.ANY:
                 return int(any(values))
@@ -47,6 +64,12 @@ class Reduce(PrimitiveOperation):
                 return values
 
     def onehot_reduction(self, values) -> int:
+        """
+        Return the index of the single truthy value in a one-hot vector.
+        """
+        for value in values:
+            if value not in (0, 1, True, False):
+                raise ValueError(f"One-hot reduction expects 0/1 values, got {value!r}")
         total = sum(values)
         if total != 1:
             print(f"One-hot reduction error: sum = {total}")
@@ -59,5 +82,8 @@ class Reduce(PrimitiveOperation):
 
     @classmethod
     def from_serialization(cls, serialization):
+        """
+        Reconstruct a Reduce operation from a serialized dict.
+        """
         reduction = Reduction(serialization["reduction"])
         return Reduce(reduction)

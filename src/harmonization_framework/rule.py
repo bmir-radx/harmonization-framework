@@ -17,7 +17,7 @@ class HarmonizationRule:
             "source": f"{self.source}",
             "target": f"{self.target}",
             "operations": [
-                primitive._serialize() for primitive in (self._transform or [])
+                primitive.to_dict() for primitive in (self._transform or [])
             ],
         }
         return output

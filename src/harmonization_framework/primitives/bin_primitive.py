@@ -16,15 +16,15 @@ class Bin(PrimitiveOperation):
     Performs a range query using an interval tree. Bins must not overlap.
     """
     def __init__(self, bins: List[Tuple[int, Tuple[int]]]):
-        self.bins = bins
-        self._tree = self._build_tree(bins, 0, len(bins)-1)
+        self.bins = self._validate_bins(bins)
+        self._tree = self._build_tree(self.bins, 0, len(self.bins)-1)
 
     def __str__(self):
         text = "Group data into the following bins:\n"
         bins = [f"Label: {key}, Start: {b[0]}, End: {b[1]}" for key, b in self.bins]
         return text + "\n".join(bins)
 
-    def _serialize(self):
+    def to_dict(self):
         output = {
             "operation": "bin",
             "bins": [
@@ -67,6 +67,26 @@ class Bin(PrimitiveOperation):
             right=self._build_tree(bins, mid+1, right),
         )
         return node
+
+    def _validate_bins(self, bins: List[Tuple[int, Tuple[int]]]) -> List[Tuple[int, Tuple[int]]]:
+        normalized = []
+        for label, (start, end) in bins:
+            if start > end:
+                raise ValueError(f"Invalid bin range: start {start} > end {end} for label {label}")
+            normalized.append((label, (start, end)))
+
+        normalized.sort(key=lambda entry: entry[1][0])
+
+        for index in range(1, len(normalized)):
+            previous_label, (previous_start, previous_end) = normalized[index - 1]
+            current_label, (current_start, current_end) = normalized[index]
+            if current_start <= previous_end:
+                raise ValueError(
+                    "Overlapping bins detected: "
+                    f"{previous_label} [{previous_start}, {previous_end}] and "
+                    f"{current_label} [{current_start}, {current_end}]"
+                )
+        return normalized
 
     @classmethod
     def from_serialization(cls, serialization):
