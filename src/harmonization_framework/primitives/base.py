@@ -1,20 +1,23 @@
-from typing import Any
+from typing import Any, Dict
 
 import json
 
+"""
+Base interfaces and utilities for primitive operations.
+"""
+
 class PrimitiveOperation:
     def __init__(self):
-        """Constructor for primitive-specitive parameters"""
-        pass
+        """Constructor for primitive-specific parameters."""
 
     def __str__(self):
         return "Generic Primitive Operation"
 
     def transform(self, value: Any) -> Any:
-        """Primitive-specific transformation function"""
-        pass
+        """Primitive-specific transformation function."""
+        raise NotImplementedError("transform() must be implemented by subclasses.")
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         """
         Return a JSON-serializable dict describing this operation.
 
@@ -23,7 +26,7 @@ class PrimitiveOperation:
         - Other keys must be snake_case.
         - Numeric values should be numbers (not strings).
         """
-        pass
+        raise NotImplementedError("to_dict() must be implemented by subclasses.")
 
     def serialize(self):
         """
@@ -39,9 +42,9 @@ class PrimitiveOperation:
         return self.transform(value)
 
     @classmethod
-    def from_serialization(cls, serialization):
-        """Primtive-specific parsing of serialization"""
-        pass
+    def from_serialization(cls, serialization: Dict[str, Any]) -> "PrimitiveOperation":
+        """Primitive-specific parsing of serialization."""
+        raise NotImplementedError("from_serialization() must be implemented by subclasses.")
 
 def support_iterable(transform):
     """
