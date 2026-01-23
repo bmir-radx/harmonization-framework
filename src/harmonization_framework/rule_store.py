@@ -3,7 +3,7 @@ from .primitives import DoNothing
 
 import json
 
-class RuleStore:
+class RuleRegistry:
     """
     In-memory storage for harmonization rules keyed by source and target.
 
@@ -70,3 +70,7 @@ class RuleStore:
         for source, rules_from_source in rules.items():
             for target, rule in rules_from_source.items():
                 self.add_rule(HarmonizationRule.from_serialization(rule))
+
+
+# Backwards-compatible alias
+RuleStore = RuleRegistry
