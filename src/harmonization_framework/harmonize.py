@@ -16,6 +16,18 @@ def harmonize_dataset(
 ) -> pd.DataFrame:
     """
     Apply harmonization rules to the provided dataset and return a new dataframe.
+
+    This function:
+    - Renames columns based on the provided source/target pairs.
+    - Applies the corresponding harmonization rule to each source column.
+    - Appends `source dataset` and `original_id` metadata columns.
+
+    Args:
+        dataset: Source dataframe containing the original columns.
+        harmonization_pairs: List of (source, target) column name pairs.
+        rules: RuleStore with harmonization rules keyed by source/target.
+        dataset_name: Name used for the `source dataset` metadata column.
+        logger: Optional replay logger for recording applied rules.
     """
     # make a new dataframe with the same number of rows and columns
     # and rename the columns
@@ -50,10 +62,19 @@ def harmonize_file(
 ) -> pd.DataFrame:
     """
     Load a CSV file, apply harmonization, and save the result to disk.
+
+    Args:
+        input_path: Path to the input CSV.
+        output_path: Path where the harmonized CSV will be written.
+        harmonization_pairs: List of (source, target) column name pairs.
+        rules: RuleStore with harmonization rules keyed by source/target.
+        dataset_name: Optional label used for the `source dataset` column.
+        logger: Optional replay logger for recording applied rules.
     """
     if dataset_name is None:
         dataset_name = os.path.basename(input_path)
 
+    # Load the input dataset and apply harmonization rules.
     dataset = pd.read_csv(input_path)
     harmonized = harmonize_dataset(
         dataset=dataset,
@@ -62,5 +83,6 @@ def harmonize_file(
         dataset_name=dataset_name,
         logger=logger,
     )
+    # Persist the output to disk.
     harmonized.to_csv(output_path, index=False)
     return harmonized
