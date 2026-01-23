@@ -4,7 +4,7 @@ from flask import Blueprint, request, jsonify, current_app
 from werkzeug.utils import secure_filename
 from harmonization_framework.api.extensions import db
 from harmonization_framework.api.models import DataFile, HarmonizationRule
-from harmonization_framework.rule import HarmonizationRule as hr
+from harmonization_framework.harmonization_rule import HarmonizationRule as hr
 from harmonization_framework.rule_registry import RuleRegistry
 from harmonization_framework.harmonize import harmonize_dataset
 from harmonization_framework.replay_log import replay_logger as rlog

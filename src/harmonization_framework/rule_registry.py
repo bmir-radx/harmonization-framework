@@ -1,4 +1,4 @@
-from .rule import HarmonizationRule
+from .harmonization_rule import HarmonizationRule
 from .primitives import DoNothing
 
 import json

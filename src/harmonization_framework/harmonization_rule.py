@@ -5,6 +5,8 @@ from .primitives import PrimitiveVocabulary, Bin, Cast, ConvertDate, ConvertUnit
 
 import json
 
+# Backwards-compatible alias
+
 class HarmonizationRule:
     def __init__(self, source: DataElement, target: DataElement, transformation: List[PrimitiveOperation] = None):
         self.source = source
@@ -79,3 +81,7 @@ class HarmonizationRule:
                     raise ValueError(f"Unknown operation: {operation['operation']}")
             transformation.append(primitive)
         return HarmonizationRule(source, target, transformation)
+
+
+# Backwards-compatible alias
+Rule = HarmonizationRule

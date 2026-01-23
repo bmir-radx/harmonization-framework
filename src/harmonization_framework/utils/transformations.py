@@ -1,6 +1,6 @@
 import json
 import pandas as pd
-from ..rule import HarmonizationRule
+from ..harmonization_rule import HarmonizationRule
 from ..rule_registry import RuleRegistry
 from ..replay_log import replay_logger as rlog
 from ..harmonize import harmonize_dataset
