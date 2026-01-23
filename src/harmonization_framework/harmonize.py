@@ -1,6 +1,7 @@
+import os
 import pandas as pd
 
-from typing import Dict, List, Tuple
+from typing import List, Optional, Tuple
 
 from .rule_store import RuleStore
 from .replay_log import replay_logger as rlog
@@ -37,3 +38,29 @@ def harmonize_dataset(
     # save old ids
     dataset_harmonized["original_id"] = dataset.index.to_list()
     return dataset_harmonized
+
+
+def harmonize_file(
+    input_path: str,
+    output_path: str,
+    harmonization_pairs: List[Tuple[str, str]],
+    rules: RuleStore,
+    dataset_name: Optional[str] = None,
+    logger=None,
+) -> pd.DataFrame:
+    """
+    Load a CSV file, apply harmonization, and save the result to disk.
+    """
+    if dataset_name is None:
+        dataset_name = os.path.basename(input_path)
+
+    dataset = pd.read_csv(input_path)
+    harmonized = harmonize_dataset(
+        dataset=dataset,
+        harmonization_pairs=harmonization_pairs,
+        rules=rules,
+        dataset_name=dataset_name,
+        logger=logger,
+    )
+    harmonized.to_csv(output_path, index=False)
+    return harmonized
