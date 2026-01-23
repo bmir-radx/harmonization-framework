@@ -46,7 +46,6 @@ class DataDictionary(db.Model):
     uploaded_at = db.Column(db.DateTime, default=datetime.now())
 
     data_files = db.relationship("DataFile", backref="dictionary", lazy=True)
-    elements = db.relationship("DataElement", backref="dictionary", lazy=True)
 
     def to_dict(self):
         return {
@@ -55,28 +54,6 @@ class DataDictionary(db.Model):
             "storage_path": self.storage_path,
             "project_id": self.project_id,
             "uploaded_at": self.uploaded_at.isoformat() if self.uploaded_at else None
-        }
-
-class DataElement(db.Model):
-    id = db.Column(db.String, primary_key=True)
-    name = db.Column(db.String, nullable=False)
-    description = db.Column(db.String)
-    datatype = db.Column(db.String)
-    permissible_values = db.Column(db.Text)
-    dictionary_id = db.Column(db.String, db.ForeignKey("data_dictionary.id"))
-    project_id = db.Column(db.String, index=True)
-    created_at = db.Column(db.DateTime, default=datetime.now())
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "name": self.name,
-            "description": self.description,
-            "datatype": self.datatype,
-            "permissible_values": self.permissible_values,
-            "dictionary_id": self.dictionary_id,
-            "project_id": self.project_id,
-            "created_at": self.created_at.isoformat() if self.created_at else None
         }
 
 class Project(db.Model):
