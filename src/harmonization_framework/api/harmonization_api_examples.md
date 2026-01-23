@@ -12,4 +12,36 @@ The following is a demo for using `curl` to interact with the Harmonization Fram
 
 ## Example Usage
 
-This section will be updated when the Electron app exposes the relevant workflows.
+### Harmonize (RPC)
+
+```bash
+curl -X POST http://localhost:8000/api \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "harmonize",
+    "params": {
+      "data_path": "/absolute/path/to/input.csv",
+      "rules_path": "/absolute/path/to/rules.json",
+      "output_path": "/absolute/path/to/output.csv",
+      "replay_log_path": "/absolute/path/to/replay.log",
+      "mode": "pairs",
+      "pairs": [
+        {"source": "col_a", "target": "col_b"}
+      ],
+      "overwrite": false
+    }
+  }'
+```
+
+### Get Job Status (RPC)
+
+```bash
+curl -X POST http://localhost:8000/api \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "getJob",
+    "params": {
+      "job_id": "job-uuid"
+    }
+  }'
+```
