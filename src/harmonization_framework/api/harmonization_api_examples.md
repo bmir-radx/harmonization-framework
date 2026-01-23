@@ -4,12 +4,6 @@ The following is a demo for using `curl` to interact with the Harmonization Fram
 
 > Note: Replace UUIDs with actual values returned by your API where necessary.
 
-## Initialize Database and File Store
-
-```bash
-python scripts/init_db.py
-```
-
 ## Start API
 
 ```bash
