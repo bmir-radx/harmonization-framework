@@ -3,14 +3,14 @@ import pandas as pd
 
 from typing import List, Optional, Tuple
 
-from .rule_store import RuleStore
+from .rule_registry import RuleRegistry
 from .replay_log import replay_logger as rlog
 
 
 def harmonize_dataset(
     dataset: pd.DataFrame,
     harmonization_pairs: List[Tuple[str]],
-    rules: RuleStore,
+    rules: RuleRegistry,
     dataset_name: str,
     logger=None,
 ) -> pd.DataFrame:
@@ -25,7 +25,7 @@ def harmonize_dataset(
     Args:
         dataset: Source dataframe containing the original columns.
         harmonization_pairs: List of (source, target) column name pairs.
-        rules: RuleStore with harmonization rules keyed by source/target.
+        rules: RuleRegistry with harmonization rules keyed by source/target.
         dataset_name: Name used for the `source dataset` metadata column.
         logger: Optional replay logger for recording applied rules.
     """
@@ -56,7 +56,7 @@ def harmonize_file(
     input_path: str,
     output_path: str,
     harmonization_pairs: List[Tuple[str, str]],
-    rules: RuleStore,
+    rules: RuleRegistry,
     dataset_name: Optional[str] = None,
     logger=None,
 ) -> pd.DataFrame:
@@ -67,7 +67,7 @@ def harmonize_file(
         input_path: Path to the input CSV.
         output_path: Path where the harmonized CSV will be written.
         harmonization_pairs: List of (source, target) column name pairs.
-        rules: RuleStore with harmonization rules keyed by source/target.
+        rules: RuleRegistry with harmonization rules keyed by source/target.
         dataset_name: Optional label used for the `source dataset` column.
         logger: Optional replay logger for recording applied rules.
     """

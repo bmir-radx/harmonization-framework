@@ -1,7 +1,7 @@
 import json
 import pandas as pd
 from ..rule import HarmonizationRule
-from ..rule_store import RuleStore
+from ..rule_registry import RuleRegistry
 from ..replay_log import replay_logger as rlog
 from ..harmonize import harmonize_dataset
 from typing import Dict, List, Tuple
@@ -15,7 +15,7 @@ def replay(log_file: str, datasets: Dict[str, pd.DataFrame]):
     # assume replay events on separate datasets can be interleaved arbitrarily.
     # require ordered replay only for operations on the same dataset
     events = {}
-    replay_rules = RuleStore()
+    replay_rules = RuleRegistry()
     with open(log_file, "r") as f:
         for line in f:
             event = json.loads(line.strip())
