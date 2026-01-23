@@ -1,7 +1,7 @@
 import json
 import pytest
 
-from harmonization_framework.rule import HarmonizationRule
+from harmonization_framework.harmonization_rule import HarmonizationRule
 from harmonization_framework.primitives import Cast, DoNothing, Round
 
 

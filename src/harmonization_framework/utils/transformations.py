@@ -1,38 +1,10 @@
 import json
 import pandas as pd
-from ..rule import HarmonizationRule
-from ..rule_store import RuleStore
+from ..harmonization_rule import HarmonizationRule
+from ..rule_registry import RuleRegistry
 from ..replay_log import replay_logger as rlog
+from ..harmonize import harmonize_dataset
 from typing import Dict, List, Tuple
-
-def harmonize_dataset(
-        dataset: pd.DataFrame,
-        harmonization_pairs: List[Tuple[str]],
-        rules: RuleStore,
-        dataset_name: str,
-        logger = None,
-) -> pd.DataFrame:
-    # make a new dataframe with the same number of rows and columns
-    # and rename the columns
-    dataset_harmonized = dataset.copy()
-    dataset_harmonized.rename(
-        columns={source: target for source, target in harmonization_pairs},
-        inplace=True,
-    )
-    # apply harmonization rule to each column
-    for source, target in harmonization_pairs:
-        print(f"Requested rule: {source} -> {target}")
-        rule = rules.query(source, target)
-        # record action in replay logger
-        if logger:
-            rlog.log_operation(logger, rule, dataset_name)
-        dataset_harmonized.rename(columns={source: target}, inplace=True)
-        dataset_harmonized[target] = dataset[source].apply(rule.transform)
-    # save source dataset
-    dataset_harmonized["source dataset"] = [dataset_name] * len(dataset)
-    # save old ids
-    dataset_harmonized["original_id"] = dataset.index.to_list()
-    return dataset_harmonized
 
 def combine_datasets(datasets: List[pd.DataFrame]):
     combined_dataset = pd.concat(datasets, axis=0, ignore_index=True)
@@ -43,7 +15,7 @@ def replay(log_file: str, datasets: Dict[str, pd.DataFrame]):
     # assume replay events on separate datasets can be interleaved arbitrarily.
     # require ordered replay only for operations on the same dataset
     events = {}
-    replay_rules = RuleStore()
+    replay_rules = RuleRegistry()
     with open(log_file, "r") as f:
         for line in f:
             event = json.loads(line.strip())

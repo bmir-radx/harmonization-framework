@@ -1,7 +1,7 @@
 import logging
 import json
 from dataclasses import dataclass
-from ..rule import HarmonizationRule
+from ..harmonization_rule import HarmonizationRule
 
 @dataclass
 class Event:
