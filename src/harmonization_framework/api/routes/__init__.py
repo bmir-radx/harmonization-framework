@@ -5,7 +5,6 @@ from .files import files_blueprint
 from .elements import elements_blueprint
 from .dictionaries import dictionaries_blueprint
 from .health import health_blueprint
-from .projects import projects_blueprint
 
 __all__ = [
     "rules_blueprint",
@@ -13,5 +12,4 @@ __all__ = [
     "elements_blueprint",
     "dictionaries_blueprint",
     "health_blueprint",
-    "projects_blueprint",
 ]
