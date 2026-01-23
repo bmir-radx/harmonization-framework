@@ -1,6 +1,6 @@
 # Harmonization Framework API
 
-The following is a demo for using `curl` to interact with the Harmonization Framework API. These examples include uploading files, creating harmonization rules, and applying those rules to data.
+The following is a demo for using `curl` to interact with the Harmonization Framework API. These examples include uploading files and applying harmonization rules to data.
 
 > Note: Replace UUIDs with actual values returned by your API where necessary.
 
@@ -30,57 +30,6 @@ curl -X POST http://localhost:5000/data-files/ \
 
 ```bash
 curl -X GET http://localhost:5000/data-files/
-```
-
-## Create Harmonization Rules
-
-```bash
-curl -X POST http://localhost:5000/harmonization-rules/ \
-  -H "Content-Type: application/json" \
-  -d '{
-    "source_target": "commute_distance_km-commute_distance_miles",
-    "project_id": "test_project",
-    "version": 1,
-    "rule_json":  {
-      "source": "commute_distance_km",
-      "target": "commute_distance_miles",
-      "operations": [
-        {
-          "operation": "convert_units",
-          "source_unit": "kilometers",
-          "target_unit": "miles"
-        },
-        {
-          "operation": "round",
-          "precision": 2
-        }
-      ]
-    }
-  }'
-```
-
-```bash
-curl -X POST http://localhost:5000/harmonization-rules/ \
-  -H "Content-Type: application/json" \
-  -d '{
-    "source_target": "employment-nih_employment",
-    "project_id": "test_project",
-    "version": 1,
-    "rule_json":  {
-      "source": "employment",
-      "target": "nih_employment",
-      "operations": [
-        {
-          "operation": "enum_to_enum",
-          "mapping": {
-            "1": 0,
-            "2": 0,
-            "3": 1
-          }
-        }
-      ]
-    }
-  }'
 ```
 
 ## Apply Harmonization Rules to a Data File
