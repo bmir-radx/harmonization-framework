@@ -1,6 +1,6 @@
 # Harmonization Framework API
 
-The following is a demo for using `curl` to interact with the Harmonization Framework API. These examples include uploading files, defining data elements, creating harmonization rules, and applying those rules to data.
+The following is a demo for using `curl` to interact with the Harmonization Framework API. These examples include uploading files, creating harmonization rules, and applying those rules to data.
 
 > Note: Replace UUIDs with actual values returned by your API where necessary.
 
@@ -14,50 +14,6 @@ python scripts/init_db.py
 
 ```bash
 ./scripts/run_flask.sh
-```
-
-## Upload a Data Dictionary
-
-```bash
-curl -X POST http://localhost:5000/data-dictionaries/ \
-  -F "file=@demo/demo_dictionary2.csv" \
-  -F "project_id=test_project"
-```
-
-A successful upload returns the ID of the data dictionary.
-
-## Retrieve a Data Dictionary by ID
-
-```bash
-curl -X GET http://localhost:5000/data-dictionaries/<dictionary_id>
-```
-
-## Extract Data Elements from a Dictionary
-
-```bash
-curl -X POST http://localhost:5000/data-dictionaries/<dictionary_id>/extract-data-elements
-```
-
-## Manually Add a Data Element
-
-```bash
-curl -X POST http://localhost:5000/data-elements/ \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "height",
-    "description": "Height of the subject in centimeters",
-    "datatype": "float",
-    "permissible_values": "50-250",
-    "project_id": "test_project"
-  }'
-```
-
-Successful creation of the data element returns its ID.
-
-## List All Data Elements
-
-```bash
-curl -X GET http://localhost:5000/data-elements/
 ```
 
 ## Upload a Data File
