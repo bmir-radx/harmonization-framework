@@ -1,7 +1,7 @@
 # src/api/routes/__init__.py
 
-from .health import health_blueprint
+from .health import router as health_router
 
 __all__ = [
-    "health_blueprint",
+    "health_router",
 ]

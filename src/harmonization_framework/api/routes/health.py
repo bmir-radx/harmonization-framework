@@ -1,7 +1,14 @@
-from flask import Blueprint, jsonify
+from fastapi import APIRouter
+from pydantic import BaseModel
 
-health_blueprint = Blueprint("health", __name__)
+router = APIRouter()
 
-@health_blueprint.route("/", methods=["GET"])
-def health_check():
-    return jsonify(status="ok", message="API is available"), 200
+
+class HealthResponse(BaseModel):
+    status: str
+    message: str
+
+
+@router.get("/")
+def health_check() -> HealthResponse:
+    return HealthResponse(status="ok", message="The harmonization API is available")

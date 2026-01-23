@@ -7,7 +7,7 @@ The following is a demo for using `curl` to interact with the Harmonization Fram
 ## Start API
 
 ```bash
-./scripts/run_flask.sh
+./scripts/run_api.sh
 ```
 
 ## Example Usage

@@ -1,11 +1,7 @@
-from flask import Flask
-from harmonization_framework.api.extensions import register_extensions
-from harmonization_framework.api.routes.health import health_blueprint
+from fastapi import FastAPI
 
-def create_app(config_name=None):
-    app = Flask(__name__, instance_relative_config=True)
-    
-    register_extensions(app)
+from harmonization_framework.api.routes.health import router as health_router
 
-    app.register_blueprint(health_blueprint, url_prefix="/health")
-    return app
+app = FastAPI(title="Harmonization Framework API")
+
+app.include_router(health_router, prefix="/health")
