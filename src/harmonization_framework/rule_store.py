@@ -4,11 +4,25 @@ from .primitives import DoNothing
 import json
 
 class RuleStore:
+    """
+    In-memory storage for harmonization rules keyed by source and target.
+
+    Rules are stored as a nested dict: {source: {target: HarmonizationRule}}.
+    """
     def __init__(self):
+        """
+        Initialize an empty rule store with a built-in no-op rule.
+        """
         self._rules = {}
         self._nothing = HarmonizationRule(None, None, [DoNothing()])
 
     def query(self, source: str, target: str = None) -> HarmonizationRule:
+        """
+        Retrieve a rule by source and optional target.
+
+        If target is None, returns all rules for a given source.
+        If source == target, returns a no-op rule.
+        """
         # support queries using just the source
         if target is None:
             return self._rules[source]
@@ -17,6 +31,9 @@ class RuleStore:
         return self._rules[source][target]
 
     def add_rule(self, rule: HarmonizationRule):
+        """
+        Add or replace a harmonization rule in the store.
+        """
         source = rule.source
         target = rule.target
         if source not in self._rules:
@@ -26,9 +43,15 @@ class RuleStore:
         self._rules[source][target] = rule
 
     def clean(self):
+        """
+        Remove all rules from the store.
+        """
         self._rules = {}
 
     def save(self, output: str = "rules.json"):
+        """
+        Serialize rules to a JSON file.
+        """
         rules = {}
         for source in self._rules:
             rules[source] = {target: rule.serialize() for target, rule in self._rules[source].items()}
@@ -36,6 +59,9 @@ class RuleStore:
             json.dump(rules, out, indent=2)
 
     def load(self, rule_file: str, clean: bool = False):
+        """
+        Load rules from a JSON file, optionally clearing existing rules first.
+        """
         if clean:
             self.clean()
 
