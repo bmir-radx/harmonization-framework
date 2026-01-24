@@ -39,9 +39,30 @@ curl -X POST http://localhost:8000/api \
 curl -X POST http://localhost:8000/api \
   -H "Content-Type: application/json" \
   -d '{
-    "method": "getJob",
+    "method": "get_job",
     "params": {
       "job_id": "job-uuid"
     }
   }'
 ```
+
+## Error Responses
+
+Errors follow a stable schema:
+
+```json
+{
+  "status": "error",
+  "error": {
+    "code": "FILE_NOT_FOUND",
+    "message": "Rules file not found: /abs/path/to/rules.json",
+    "details": {
+      "path_type": "rules_path",
+      "path": "/abs/path/to/rules.json"
+    }
+  }
+}
+```
+
+The `code` is a small, stable set of values. Use `details` to determine
+which field/path caused the error.
