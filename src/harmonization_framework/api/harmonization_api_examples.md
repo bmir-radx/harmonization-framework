@@ -20,10 +20,10 @@ curl -X POST http://localhost:8000/api \
   -d '{
     "method": "harmonize",
     "params": {
-      "data_path": "/absolute/path/to/input.csv",
-      "rules_path": "/absolute/path/to/rules.json",
-      "output_path": "/absolute/path/to/output.csv",
-      "replay_log_path": "/absolute/path/to/replay.log",
+      "data_file_path": "/absolute/path/to/input.csv",
+      "rules_file_path": "/absolute/path/to/rules.json",
+      "replay_log_file_path": "/absolute/path/to/replay.log",
+      "output_file_path": "/absolute/path/to/output.csv",
       "mode": "pairs",
       "pairs": [
         {"source": "col_a", "target": "col_b"}
@@ -57,7 +57,7 @@ Errors follow a stable schema:
     "code": "FILE_NOT_FOUND",
     "message": "Rules file not found: /abs/path/to/rules.json",
     "details": {
-      "path_type": "rules_path",
+      "path_type": "rules_file_path",
       "path": "/abs/path/to/rules.json"
     }
   }
