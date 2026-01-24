@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 
-from typing import List, Optional, Tuple
+from typing import Callable, List, Optional, Tuple
 
 from .rule_registry import RuleRegistry
 from .replay_log import replay_logger as rlog
@@ -13,6 +13,7 @@ def harmonize_dataset(
     rules: RuleRegistry,
     dataset_name: str,
     logger=None,
+    progress_callback: Optional[Callable[[int, int], None]] = None,
 ) -> pd.DataFrame:
     """
     Apply harmonization rules to the provided dataset and return a new dataframe.
@@ -28,6 +29,7 @@ def harmonize_dataset(
         rules: RuleRegistry with harmonization rules keyed by source/target.
         dataset_name: Name used for the `source dataset` metadata column.
         logger: Optional replay logger for recording applied rules.
+        progress_callback: Optional callback invoked with (processed, total) counts.
     """
     # make a new dataframe with the same number of rows and columns
     # and rename the columns
@@ -37,6 +39,9 @@ def harmonize_dataset(
         inplace=True,
     )
     # apply harmonization rule to each column
+    total_steps = len(dataset) * len(harmonization_pairs) if harmonization_pairs else 0
+    processed = 0
+
     for source, target in harmonization_pairs:
         print(f"Requested rule: {source} -> {target}")
         rule = rules.query(source, target)
@@ -44,7 +49,16 @@ def harmonize_dataset(
         if logger:
             rlog.log_operation(logger, rule, dataset_name)
         dataset_harmonized.rename(columns={source: target}, inplace=True)
-        dataset_harmonized[target] = dataset[source].apply(rule.transform)
+
+        def transform_with_progress(value):
+            nonlocal processed
+            result = rule.transform(value)
+            processed += 1
+            if progress_callback:
+                progress_callback(processed, total_steps)
+            return result
+
+        dataset_harmonized[target] = dataset[source].apply(transform_with_progress)
     # save source dataset
     dataset_harmonized["source dataset"] = [dataset_name] * len(dataset)
     # save old ids

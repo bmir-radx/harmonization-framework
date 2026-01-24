@@ -12,4 +12,57 @@ The following is a demo for using `curl` to interact with the Harmonization Fram
 
 ## Example Usage
 
-This section will be updated when the Electron app exposes the relevant workflows.
+### Harmonize (RPC)
+
+```bash
+curl -X POST http://localhost:8000/api \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "harmonize",
+    "params": {
+      "data_file_path": "/absolute/path/to/input.csv",
+      "rules_file_path": "/absolute/path/to/rules.json",
+      "replay_log_file_path": "/absolute/path/to/replay.log",
+      "output_file_path": "/absolute/path/to/output.csv",
+      "mode": "pairs",
+      "pairs": [
+        {"source": "col_a", "target": "col_b"}
+      ],
+      "overwrite": false
+    }
+  }'
+```
+
+### Get Job Status (RPC)
+
+```bash
+curl -X POST http://localhost:8000/api \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "get_job",
+    "params": {
+      "job_id": "job-uuid"
+    }
+  }'
+```
+
+## Error Responses
+
+Errors follow a stable schema:
+
+```json
+{
+  "status": "error",
+  "error": {
+    "code": "FILE_NOT_FOUND",
+    "message": "Rules file not found: /abs/path/to/rules.json",
+    "details": {
+      "path_type": "rules_file_path",
+      "path": "/abs/path/to/rules.json"
+    }
+  }
+}
+```
+
+The `code` is a small, stable set of values. Use `details` to determine
+which field/path caused the error.

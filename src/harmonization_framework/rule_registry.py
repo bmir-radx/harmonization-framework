@@ -42,6 +42,16 @@ class RuleRegistry:
             print(f"Warning: rule already exists for source {rule.source} and target {rule.target}.")
         self._rules[source][target] = rule
 
+    def list_pairs(self):
+        """
+        Return a list of (source, target) pairs for all stored rules.
+        """
+        pairs = []
+        for source, targets in self._rules.items():
+            for target in targets:
+                pairs.append((source, target))
+        return pairs
+
     def clean(self):
         """
         Remove all rules from the store.
