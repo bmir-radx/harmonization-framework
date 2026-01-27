@@ -15,7 +15,8 @@ It includes a small input CSV, a rules JSON file, and a Python script that perfo
 - Splits `name` (stored as `"Last, First"`) into two new columns:
   - `given_name`
   - `family_name`
-- Maps `visit_type_code` (numeric codes) to `visit_type_label` using an enum-to-enum rule.
+- Maps `visit_type_code` to `visit_type_label` using an enum-to-enum rule.
+  (Note: this primitive currently requires numeric mapping values.)
 
 ## Run it
 From the repository root:

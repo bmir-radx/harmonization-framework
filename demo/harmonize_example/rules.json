@@ -67,11 +67,11 @@
         {
           "operation": "enum_to_enum",
           "mapping": {
-            "1": "baseline",
-            "2": "follow_up",
-            "3": "screening"
+            "1": 1,
+            "2": 2,
+            "3": 3
           },
-          "default": "unknown",
+          "default": 0,
           "strict": false
         }
       ]
