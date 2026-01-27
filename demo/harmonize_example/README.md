@@ -15,8 +15,7 @@ It includes a small input CSV, a rules JSON file, and a Python script that perfo
 - Splits `name` (stored as `"Last, First"`) into two new columns:
   - `given_name`
   - `family_name`
-- Maps `visit_type_code` to `visit_type_label` using an enum-to-enum rule.
-  (Note: this primitive currently requires numeric mapping values.)
+- Maps `visit_type_code` (e.g., BL/FU/SC) to `visit_type_label` using an enum-to-enum rule.
 
 ## Run it
 From the repository root:
@@ -29,10 +28,10 @@ This writes `demo/harmonize_example/output.csv`.
 
 ## Expected output columns
 The output CSV includes:
-- `age_years`
-- `weight_kg`
 - `given_name`
 - `family_name`
+- `age_years`
+- `weight_kg`
 - `visit_type_label`
 - `source dataset` (set to `"demo"` for each row)
 - `original_id` (the original row index)
