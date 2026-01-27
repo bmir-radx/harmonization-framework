@@ -98,6 +98,32 @@ def test_enum_to_enum_serialization_and_transform():
     assert primitive.transform([1, 2]) == [10, 20]
 
 
+def test_enum_to_enum_string_mapping_roundtrip():
+    payload = {
+        "operation": "enum_to_enum",
+        "mapping": {"BL": "baseline", "FU": "follow_up"},
+        "default": "unknown",
+        "strict": False,
+    }
+
+    roundtrip = EnumToEnum.from_serialization(payload)
+    assert roundtrip.to_dict() == payload
+    assert roundtrip.transform("BL") == "baseline"
+    assert roundtrip.transform(["BL", "FU", "ZZ"]) == ["baseline", "follow_up", "unknown"]
+
+
+def test_enum_to_enum_string_keys_preserved():
+    payload = {
+        "operation": "enum_to_enum",
+        "mapping": {"1": "one", "2": "two"},
+        "strict": False,
+    }
+
+    roundtrip = EnumToEnum.from_serialization(payload)
+    assert roundtrip.to_dict() == payload
+    assert roundtrip.transform("1") == "one"
+
+
 def test_enum_to_enum_default_for_missing_value():
     primitive = EnumToEnum({1: 10}, default=-1)
     assert primitive.transform(2) == -1
