@@ -1,0 +1,4 @@
+age_years,weight_kg,family_name,visit_type_label,given_name,source dataset,original_id
+10,35.5,Smith,1,Alice,input.csv,0
+5,20.18,Jones,2,Bob,input.csv,1
+8,41.82,Nguyen,3,Carol,input.csv,2

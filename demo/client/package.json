@@ -1,0 +1,8 @@
+{
+  "name": "harmonization-client-demo",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "^20.11.30"
+  }
+}
