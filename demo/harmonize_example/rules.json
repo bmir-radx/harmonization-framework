@@ -16,13 +16,8 @@
           "scaling_factor": 0.453592
         },
         {
-          "operation": "round",
+          "operation": "format_number",
           "precision": 2
-        },
-        {
-          "operation": "cast",
-          "source": "float",
-          "target": "text"
         }
       ]
     }

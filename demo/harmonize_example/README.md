@@ -11,7 +11,7 @@ It includes a small input CSV, a rules JSON file, and a Python script that perfo
 
 ## What the example does
 - Renames `age` to `age_years` (pass-through).
-- Converts `weight_lbs` to `weight_kg` (multiply by 0.453592).
+- Converts `weight_lbs` to `weight_kg` (multiply by 0.453592) and formats to two decimals.
 - Splits `name` (stored as `"Last, First"`) into two new columns:
   - `given_name`
   - `family_name`

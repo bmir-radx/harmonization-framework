@@ -7,6 +7,7 @@ from harmonization_framework.primitives import (
     ConvertUnits,
     DoNothing,
     EnumToEnum,
+    FormatNumber,
     NormalizeText,
     Offset,
     Reduce,
@@ -134,6 +135,29 @@ def test_enum_to_enum_strict_raises_for_missing_value():
     primitive = EnumToEnum({1: 10}, strict=True)
     with pytest.raises(KeyError, match="Missing mapping"):
         primitive.transform(2)
+
+
+def test_format_number_serialization_and_transform():
+    payload = {"operation": "format_number", "precision": 2}
+
+    roundtrip = FormatNumber.from_serialization(payload)
+    assert roundtrip.to_dict() == payload
+    assert roundtrip.transform(35.5) == "35.50"
+    assert roundtrip.transform(3) == "3.00"
+    assert roundtrip.transform([1.234, 2]) == ["1.23", "2.00"]
+
+
+def test_format_number_rejects_invalid_precision():
+    with pytest.raises(TypeError, match="Precision must be an integer"):
+        FormatNumber("2")  # type: ignore[arg-type]
+    with pytest.raises(ValueError, match="non-negative"):
+        FormatNumber(-1)
+
+
+def test_format_number_rejects_non_numeric():
+    primitive = FormatNumber(2)
+    with pytest.raises(TypeError, match="numeric"):
+        primitive.transform("nope")
 
 
 def test_round_serialization_and_transform():
