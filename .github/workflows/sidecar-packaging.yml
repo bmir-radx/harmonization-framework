@@ -1,0 +1,64 @@
+name: Sidecar Packaging
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-sidecar:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            os_short: mac
+          - os: windows-latest
+            os_short: win
+          - os: ubuntu-latest
+            os_short: linux
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install .
+          python -m pip install pyinstaller
+
+      - name: Build sidecar (onedir)
+        run: |
+          python -m PyInstaller \
+            --noconfirm \
+            --clean \
+            --onedir \
+            --name harmonization-sidecar \
+            --paths src \
+            --distpath dist/sidecar/${{ matrix.os_short }} \
+            scripts/sidecar_entry.py
+
+      - name: Package artifact (macOS/Linux)
+        if: runner.os != 'Windows'
+        run: |
+          cd dist/sidecar/${{ matrix.os_short }}
+          tar -czf ../../harmonization-sidecar-${{ matrix.os_short }}.tar.gz .
+
+      - name: Package artifact (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Compress-Archive -Path dist/sidecar/${{ matrix.os_short }}/* -DestinationPath dist/harmonization-sidecar-${{ matrix.os_short }}.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: harmonization-sidecar-${{ matrix.os_short }}
+          path: |
+            dist/harmonization-sidecar-${{ matrix.os_short }}.tar.gz
+            dist/harmonization-sidecar-${{ matrix.os_short }}.zip

@@ -7,3 +7,5 @@ __pycache__
 src/harmonization_framework.egg-info
 node_modules
 replay.log
+dist
+*.spec
