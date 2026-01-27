@@ -1,0 +1,80 @@
+{
+  "age": {
+    "age_years": {
+      "source": "age",
+      "target": "age_years",
+      "operations": []
+    }
+  },
+  "weight_lbs": {
+    "weight_kg": {
+      "source": "weight_lbs",
+      "target": "weight_kg",
+      "operations": [
+        {
+          "operation": "scale",
+          "scaling_factor": 0.453592
+        },
+        {
+          "operation": "round",
+          "precision": 2
+        },
+        {
+          "operation": "cast",
+          "source": "float",
+          "target": "text"
+        }
+      ]
+    }
+  },
+  "name": {
+    "given_name": {
+      "source": "name",
+      "target": "given_name",
+      "operations": [
+        {
+          "operation": "substitute",
+          "expression": "^\\s*([^,]+),\\s*(.+)$",
+          "substitution": "\\2"
+        },
+        {
+          "operation": "normalize_text",
+          "normalization": "strip"
+        }
+      ]
+    },
+    "family_name": {
+      "source": "name",
+      "target": "family_name",
+      "operations": [
+        {
+          "operation": "substitute",
+          "expression": "^\\s*([^,]+),\\s*(.+)$",
+          "substitution": "\\1"
+        },
+        {
+          "operation": "normalize_text",
+          "normalization": "strip"
+        }
+      ]
+    }
+  },
+  "visit_type_code": {
+    "visit_type_label": {
+      "source": "visit_type_code",
+      "target": "visit_type_label",
+      "operations": [
+        {
+          "operation": "enum_to_enum",
+          "mapping": {
+            "1": "baseline",
+            "2": "follow_up",
+            "3": "screening"
+          },
+          "default": "unknown",
+          "strict": false
+        }
+      ]
+    }
+  }
+}
