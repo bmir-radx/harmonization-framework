@@ -18,6 +18,36 @@ pip install .
 
 We recommend using the harmonization framework in an interactive Python environment like a Jupyter notebook. A demonstration is provided in `demo/integration.ipynb`.
 
+### Sidecar (local API service)
+
+The package exposes a small sidecar entrypoint for running the FastAPI backend
+as a local service (intended to be launched by an Electron app).
+
+Required environment variables:
+- `API_PORT` (required): port to bind.
+- `API_HOST` (optional): defaults to `127.0.0.1`.
+
+Example:
+
+```bash
+API_PORT=54321 API_HOST=127.0.0.1 harmonization-sidecar
+```
+
+When running, the health check is available at:
+
+```
+GET http://127.0.0.1:54321/health/
+```
+
+Graceful shutdown is supported via:
+
+```
+POST http://127.0.0.1:54321/shutdown/
+```
+
+Logs are written to stdout/stderr. Optionally, set `API_LOG_PATH` to also write
+logs to a file (if/when this is enabled).
+
 ## Serialization Format
 
 Harmonization rules and primitives serialize to JSON-friendly dictionaries with a consistent schema:
