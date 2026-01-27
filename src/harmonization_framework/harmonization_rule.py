@@ -1,7 +1,7 @@
 from typing import Any, List
 from .element import DataElement
 from .primitives.base import PrimitiveOperation
-from .primitives import PrimitiveVocabulary, Bin, Cast, ConvertDate, ConvertUnits, DoNothing, EnumToEnum, NormalizeText, Offset, Reduce, Round, Scale, Substitute, Threshold, Truncate
+from .primitives import PrimitiveVocabulary, Bin, Cast, ConvertDate, ConvertUnits, DoNothing, EnumToEnum, FormatNumber, NormalizeText, Offset, Reduce, Round, Scale, Substitute, Threshold, Truncate
 
 import json
 
@@ -61,6 +61,8 @@ class HarmonizationRule:
                     primitive = DoNothing.from_serialization(operation)
                 case PrimitiveVocabulary.ENUM_TO_ENUM.value:
                     primitive = EnumToEnum.from_serialization(operation)
+                case PrimitiveVocabulary.FORMAT_NUMBER.value:
+                    primitive = FormatNumber.from_serialization(operation)
                 case PrimitiveVocabulary.NORMALIZE_TEXT.value:
                     primitive = NormalizeText.from_serialization(operation)
                 case PrimitiveVocabulary.OFFSET.value:
