@@ -17,7 +17,7 @@
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { GetJobResponse, HarmonizeRequest, HarmonizeResponse, JOB_STATUS } from "./rpc_types.ts";
-import { RpcClient } from "./rpc_client.js";
+import { RpcClient } from "./rpc_client.ts";
 
 // The single RPC endpoint exposed by the server.
 const API_URL = "http://localhost:8000/api";
