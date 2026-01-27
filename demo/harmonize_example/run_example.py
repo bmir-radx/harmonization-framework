@@ -52,8 +52,8 @@ def main() -> None:
 
     # Reorder columns for readability in the demo output.
     preferred_order = [
-        "family_name",
         "given_name",
+        "family_name",
         "age_years",
         "weight_kg",
         "visit_type_label",

@@ -1,4 +1,4 @@
-age_years,weight_kg,family_name,visit_type_label,given_name,source dataset,original_id
-10,35.5,Smith,1,Alice,input.csv,0
-5,20.18,Jones,2,Bob,input.csv,1
-8,41.82,Nguyen,3,Carol,input.csv,2
+given_name,family_name,age_years,weight_kg,visit_type_label,source dataset,original_id
+Alice,Smith,10,35.5,baseline,demo,0
+Bob,Jones,5,20.18,follow_up,demo,1
+Carol,Nguyen,8,41.82,screening,demo,2

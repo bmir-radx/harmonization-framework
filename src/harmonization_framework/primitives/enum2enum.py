@@ -8,12 +8,12 @@ class EnumToEnum(PrimitiveOperation):
     If strict is True, missing mappings raise a KeyError.
     If strict is False, missing mappings return the configured default (or None).
     """
-    def __init__(self, mapping: Dict[int, int], default: Any = None, strict: bool = False):
+    def __init__(self, mapping: Dict[Any, Any], default: Any = None, strict: bool = False):
         """
         Create a mapping from source enum values to target enum values.
 
         Args:
-            mapping: Dict of source -> target values.
+            mapping: Dict of source -> target values (string or numeric keys/values).
             default: Value to return when a mapping is missing (strict=False only).
             strict: When True, raise a KeyError for missing mappings.
         """
@@ -57,10 +57,20 @@ class EnumToEnum(PrimitiveOperation):
         """
         Reconstruct an EnumToEnum mapping from a serialized dict.
         """
-        mapping = {
-            int(key): int(value)
-            for key, value in serialization["mapping"].items()
-        }
+        mapping = serialization["mapping"]
+
+        def is_int_like(value: Any) -> bool:
+            if isinstance(value, bool):
+                return False
+            if isinstance(value, int):
+                return True
+            if isinstance(value, str):
+                stripped = value.strip()
+                return stripped.lstrip("-").isdigit() and stripped != ""
+            return False
+
+        if mapping and all(is_int_like(k) for k in mapping) and all(is_int_like(v) for v in mapping.values()):
+            mapping = {int(key): int(value) for key, value in mapping.items()}
         default = serialization.get("default")
         strict = bool(serialization.get("strict", False))
         return EnumToEnum(mapping, default=default, strict=strict)
