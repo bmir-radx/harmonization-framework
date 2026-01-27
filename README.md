@@ -48,6 +48,21 @@ POST http://127.0.0.1:54321/shutdown/
 Logs are written to stdout/stderr. Optionally, set `API_LOG_PATH` to also write
 logs to a file (if/when this is enabled).
 
+### Sidecar packaging (CI)
+
+The repository includes a GitHub Actions workflow that builds the sidecar
+executable for macOS, Windows, and Linux. The workflow outputs artifacts:
+
+- `harmonization-sidecar-mac` (tar.gz)
+- `harmonization-sidecar-win` (zip)
+- `harmonization-sidecar-linux` (tar.gz)
+
+Artifacts are built under:
+
+```
+dist/sidecar/<os_short>/
+```
+
 ## Serialization Format
 
 Harmonization rules and primitives serialize to JSON-friendly dictionaries with a consistent schema:
