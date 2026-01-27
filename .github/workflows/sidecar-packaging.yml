@@ -33,6 +33,7 @@ jobs:
           python -m pip install pyinstaller
 
       - name: Build sidecar (onedir)
+        shell: bash
         run: |
           python -m PyInstaller \
             --noconfirm \
