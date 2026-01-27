@@ -1,7 +1,7 @@
 import pytest
 
 from harmonization_framework.api import sidecar
-from harmonization_framework.api.sidecar import _parse_port, _resolve_host
+from harmonization_framework.api.sidecar import _parse_port, _resolve_host, _configure_logging
 
 
 def test_parse_port_accepts_valid_range():
@@ -77,3 +77,10 @@ def test_main_runs_with_valid_env(monkeypatch):
     sidecar.main()
 
     assert calls == {"host": "127.0.0.1", "port": 54321, "log_level": "info"}
+
+
+def test_configure_logging_with_file(tmp_path):
+    log_path = tmp_path / "sidecar.log"
+    handlers = _configure_logging(str(log_path))
+    assert len(handlers) == 2
+    assert log_path.exists()

@@ -45,8 +45,8 @@ Graceful shutdown is supported via:
 POST http://127.0.0.1:54321/shutdown/
 ```
 
-Logs are written to stdout/stderr. Optionally, set `API_LOG_PATH` to also write
-logs to a file (if/when this is enabled).
+Logs are written to stdout/stderr as JSON lines. Optionally, set `API_LOG_PATH`
+to also write logs to a file.
 
 ### Sidecar packaging (CI)
 
