@@ -5,6 +5,7 @@ from .dates import ConvertDate
 from .donothing import DoNothing
 from .enum2enum import EnumToEnum
 from .format_number import FormatNumber
+from .normalize_boolean import NormalizeBoolean
 from .normalize import NormalizeText
 from .offset import Offset
 from .reduce import Reduce

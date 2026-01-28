@@ -8,6 +8,7 @@ from harmonization_framework.primitives import (
     DoNothing,
     EnumToEnum,
     FormatNumber,
+    NormalizeBoolean,
     NormalizeText,
     Offset,
     Reduce,
@@ -135,6 +136,33 @@ def test_enum_to_enum_strict_raises_for_missing_value():
     primitive = EnumToEnum({1: 10}, strict=True)
     with pytest.raises(KeyError, match="Missing mapping"):
         primitive.transform(2)
+
+
+def test_normalize_boolean_serialization_and_transform():
+    payload = {
+        "operation": "normalize_boolean",
+        "truthy": ["true", "t", "yes", "y", "1", "on"],
+        "falsy": ["false", "f", "no", "n", "0", "off", ""],
+        "strict": True,
+    }
+
+    roundtrip = NormalizeBoolean.from_serialization(payload)
+    assert roundtrip.to_dict() == payload
+    assert roundtrip.transform("Yes") is True
+    assert roundtrip.transform("  n ") is False
+    assert roundtrip.transform("1") is True
+    assert roundtrip.transform(["true", "false"]) == [True, False]
+
+
+def test_normalize_boolean_strict_raises_on_unknown():
+    primitive = NormalizeBoolean()
+    with pytest.raises(ValueError, match="Unknown boolean-like value"):
+        primitive.transform("maybe")
+
+
+def test_normalize_boolean_non_strict_default():
+    primitive = NormalizeBoolean(strict=False, default=None)
+    assert primitive.transform("maybe") is None
 
 
 def test_format_number_serialization_and_transform():

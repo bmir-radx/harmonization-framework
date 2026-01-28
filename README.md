@@ -97,3 +97,11 @@ Example:
   ]
 }
 ```
+
+### NormalizeBoolean defaults
+
+If you use the `normalize_boolean` primitive without specifying `truthy` or
+`falsy` lists, the following defaults are applied:
+
+- truthy: `["true", "t", "yes", "y", "1", 1, true, "on"]`
+- falsy: `["false", "f", "no", "n", "0", 0, false, "off", ""]`
