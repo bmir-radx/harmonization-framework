@@ -70,6 +70,8 @@ unpack it into the app's bundled resources, and launch the sidecar binary at
 runtime. The launcher sets `API_PORT` (and optionally `API_HOST`) and then polls
 `/health/` before issuing API calls.
 
+See `docs/electron_sidecar.md` for the full packaging and launch guide.
+
 ## Serialization Format
 
 Harmonization rules and primitives serialize to JSON-friendly dictionaries with a consistent schema:
