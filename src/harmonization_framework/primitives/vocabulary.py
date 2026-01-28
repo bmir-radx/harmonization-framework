@@ -8,6 +8,7 @@ class PrimitiveVocabulary(Enum):
     DO_NOTHING = "do_nothing"
     ENUM_TO_ENUM = "enum_to_enum"
     FORMAT_NUMBER = "format_number"
+    NORMALIZE_BOOLEAN = "normalize_boolean"
     NORMALIZE_TEXT = "normalize_text"
     OFFSET = "offset"
     REDUCE = "reduce"
