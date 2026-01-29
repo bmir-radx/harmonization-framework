@@ -98,6 +98,57 @@ Example:
 }
 ```
 
+## Primitives Reference
+
+The table below lists the available primitives, their purpose, and settings.
+All settings are provided in the operation dict for rule serialization.
+
+| Operation | Purpose | Settings |
+| --- | --- | --- |
+| `bin` | Bucket numeric values into non-overlapping ranges; returns the bin label. | `bins`: list of `{label,start,end}` (ranges must not overlap; inclusive bounds) |
+| `cast` | Convert values between primitive types. | `source`: type<br>`target`: type (`text`, `integer`, `boolean`, `decimal`, `float`); boolean casting accepts common string/number forms |
+| `convert_date` | Convert date/time strings between formats. | `source_format`, `target_format` (strftime patterns; raises if parsing fails) |
+| `convert_units` | Convert numeric values between units using pint. | `source_unit`, `target_unit` (Unit enum or pint string; raises on invalid units) |
+| `do_nothing` | No-op transform (pass-through). | None |
+| `enum_to_enum` | Map discrete values to other values. | `mapping` (dict)<br>`strict` (bool, default `false`)<br>`default` (optional) |
+| `format_number` | Format numeric values with fixed decimal places. | `precision` (int, >=0); output is text (string) |
+| `normalize_boolean` | Normalize truthy/falsy values to booleans. | `truthy` (list, optional; defaults below)<br>`falsy` (list, optional; defaults below)<br>`strict` (bool, default `true`)<br>`default` (optional; used when `strict=false`) |
+| `normalize_text` | Apply a single text normalization. | `normalization` (`strip`, `lower`, `upper`, `remove_accents`, `remove_punctuation`, `remove_special_characters`) |
+| `offset` | Add an offset to numeric values. | `offset` (number) |
+| `reduce` | Reduce a list of values to one value. | `reduction` (`any`, `none`, `all`, `one-hot`, `sum`); expects a list/tuple input; one-hot returns index or None |
+| `round` | Round numeric values to a given precision. | `precision` (int, >=0); uses Python `round` semantics |
+| `scale` | Multiply numeric values by a factor. | `scaling_factor` (number) |
+| `substitute` | Regex-based string substitution. | `expression` (regex; validated)<br>`substitution` (replacement) |
+| `threshold` | Clamp numeric values between bounds. | `lower`, `upper` (numbers; lower <= upper; output type follows numeric promotion) |
+| `truncate` | Cut strings to a max length. | `length` (int, >=0) |
+
+Defaults for `normalize_boolean` (used when `truthy`/`falsy` are not provided):
+- truthy: `["true","t","yes","y","1",1,true,"on"]`
+- falsy: `["false","f","no","n","0",0,false,"off",""]`
+
+### Primitive examples
+
+Each operation is represented by a JSON-friendly dict. Examples:
+
+| Operation | Example |
+| --- | --- |
+| `bin` | `{"operation":"bin","bins":[{"label":"low","start":0,"end":9},{"label":"high","start":10,"end":19}]}` |
+| `cast` | `{"operation":"cast","source":"text","target":"integer"}` |
+| `convert_date` | `{"operation":"convert_date","source_format":"%Y-%m-%d","target_format":"%m/%d/%Y"}` |
+| `convert_units` | `{"operation":"convert_units","source_unit":"inch","target_unit":"cm"}` |
+| `do_nothing` | `{"operation":"do_nothing"}` |
+| `enum_to_enum` | `{"operation":"enum_to_enum","mapping":{"BL":"baseline","FU":"follow_up"},"strict":false,"default":"unknown"}` |
+| `format_number` | `{"operation":"format_number","precision":2}` |
+| `normalize_boolean` | `{"operation":"normalize_boolean","truthy":["yes","y","1"],"falsy":["no","n","0"],"strict":true}` |
+| `normalize_text` | `{"operation":"normalize_text","normalization":"lower"}` |
+| `offset` | `{"operation":"offset","offset":2.5}` |
+| `reduce` | `{"operation":"reduce","reduction":"one-hot"}` |
+| `round` | `{"operation":"round","precision":2}` |
+| `scale` | `{"operation":"scale","scaling_factor":0.453592}` |
+| `substitute` | `{"operation":"substitute","expression":",","substitution":" "}` |
+| `threshold` | `{"operation":"threshold","lower":0,"upper":100}` |
+| `truncate` | `{"operation":"truncate","length":3}` |
+
 ### NormalizeBoolean defaults
 
 If you use the `normalize_boolean` primitive without specifying `truthy` or
