@@ -41,10 +41,10 @@ The launcher must set environment variables and then spawn the binary.
 Electron’s main process uses Node.js process APIs. To pass env vars, use
 `child_process.spawn()` (or similar) and pass an `env` object that extends
 `process.env`. This is standard Node.js behavior; see the Node.js `child_process`
-documentation for details. citeturn0search6
+documentation for details.
 
 Note: On Windows, environment variable keys are case-insensitive. Avoid
-duplicating keys with different casing (e.g., `PATH` vs `Path`). citeturn0search6
+duplicating keys with different casing (e.g., `PATH` vs `Path`).
 
 ## 4) Readiness
 After spawn, poll:
