@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, Dict, List, Optional
 from .element import DataElement
 from .primitives.base import PrimitiveOperation
 from .primitives import PrimitiveVocabulary, Bin, Cast, ConvertDate, ConvertUnits, DoNothing, EnumToEnum, FormatNumber, NormalizeBoolean, NormalizeText, Offset, Reduce, Round, Scale, Substitute, Threshold, Truncate
@@ -8,10 +8,17 @@ import json
 # Backwards-compatible alias
 
 class HarmonizationRule:
-    def __init__(self, source: DataElement, target: DataElement, transformation: List[PrimitiveOperation] = None):
+    def __init__(
+        self,
+        source: DataElement,
+        target: DataElement,
+        transformation: List[PrimitiveOperation] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+    ):
         self.source = source
         self.target = target
         self._transform = transformation
+        self.metadata = metadata
         self.serialization = json.dumps(self.serialize())
 
     def serialize(self):
@@ -22,6 +29,8 @@ class HarmonizationRule:
                 primitive.to_dict() for primitive in (self._transform or [])
             ],
         }
+        if self.metadata:
+            output["metadata"] = self.metadata
         return output
 
     def __str__(self):
@@ -46,6 +55,7 @@ class HarmonizationRule:
         source = serialization["source"]
         target = serialization["target"]
         operations = serialization["operations"]
+        metadata = serialization.get("metadata")
         transformation = []
         for operation in operations:
             match operation["operation"]:
@@ -84,7 +94,7 @@ class HarmonizationRule:
                 case _:
                     raise ValueError(f"Unknown operation: {operation['operation']}")
             transformation.append(primitive)
-        return HarmonizationRule(source, target, transformation)
+        return HarmonizationRule(source, target, transformation, metadata=metadata)
 
 
 # Backwards-compatible alias
