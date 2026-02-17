@@ -18,3 +18,4 @@ classifiers = [
 
 [project.scripts]
 harmonization-sidecar = "harmonization_framework.api.sidecar:main"
+harmonize = "harmonization_framework.cli:main"

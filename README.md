@@ -18,6 +18,26 @@ pip install .
 
 We recommend using the harmonization framework in an interactive Python environment like a Jupyter notebook. A demonstration is provided in `demo/integration.ipynb`.
 
+### CLI
+
+Run harmonization from the command line with the `harmonize` CLI.
+
+Example:
+
+```bash
+harmonize \
+  --rules rules/radx_up_rules.json \
+  --rules rules/radx_rad_rules.json \
+  --input data.csv \
+  --output harmonized.csv \
+  --on-missing warn
+```
+
+Notes:
+- Input/output format is auto-detected by file extension (`.csv`/`.tsv`).
+- By default only target columns are written. Add `--include-metadata` to include `source dataset` and `original_id`.
+- Restrict outputs with `--targets nih_age,nih_sex`.
+
 ### Sidecar (local API service)
 
 The package exposes a small sidecar entrypoint for running the FastAPI backend
