@@ -8,6 +8,7 @@ from .format_number import FormatNumber
 from .normalize_boolean import NormalizeBoolean
 from .normalize import NormalizeText
 from .offset import Offset
+from .parse_array import ParseArray
 from .reduce import Reduce
 from .round_decimal import Round
 from .scale import Scale

@@ -1,0 +1,219 @@
+{
+  "age_years": {
+    "age_group": {
+      "source": "age_years",
+      "target": "age_group",
+      "operations": [
+        {
+          "operation": "bin",
+          "bins": [
+            {"label": 1, "start": 0, "end": 12},
+            {"label": 2, "start": 13, "end": 17},
+            {"label": 3, "start": 18, "end": 64},
+            {"label": 4, "start": 65, "end": 120}
+          ]
+        }
+      ]
+    }
+  },
+  "age_group": {
+    "age_group_label": {
+      "source": "age_group",
+      "target": "age_group_label",
+      "operations": [
+        {
+          "operation": "enum_to_enum",
+          "mapping": {
+            "1": "child",
+            "2": "teen",
+            "3": "adult",
+            "4": "senior"
+          },
+          "default": "unknown",
+          "strict": false
+        }
+      ]
+    }
+  },
+  "zip_code_text": {
+    "zip_code": {
+      "source": "zip_code_text",
+      "target": "zip_code",
+      "operations": [
+        {
+          "operation": "cast",
+          "source": "text",
+          "target": "integer"
+        }
+      ]
+    }
+  },
+  "visit_date_iso": {
+    "visit_date_us": {
+      "source": "visit_date_iso",
+      "target": "visit_date_us",
+      "operations": [
+        {
+          "operation": "convert_date",
+          "source_format": "%Y-%m-%d",
+          "target_format": "%m/%d/%Y"
+        }
+      ]
+    }
+  },
+  "weight_kg": {
+    "weight_lb": {
+      "source": "weight_kg",
+      "target": "weight_lb",
+      "operations": [
+        {
+          "operation": "convert_units",
+          "source_unit": "kg",
+          "target_unit": "lb"
+        }
+      ]
+    }
+  },
+  "record_id": {
+    "record_id_copy": {
+      "source": "record_id",
+      "target": "record_id_copy",
+      "operations": [
+        {
+          "operation": "do_nothing"
+        }
+      ]
+    }
+  },
+  "bmi": {
+    "bmi_formatted": {
+      "source": "bmi",
+      "target": "bmi_formatted",
+      "operations": [
+        {
+          "operation": "format_number",
+          "precision": 1
+        }
+      ]
+    }
+  },
+  "smoker_response": {
+    "is_smoker": {
+      "source": "smoker_response",
+      "target": "is_smoker",
+      "operations": [
+        {
+          "operation": "normalize_boolean",
+          "truthy": ["true", "t", "yes", "y", "1", 1, true, "on"],
+          "falsy": ["false", "f", "no", "n", "0", 0, false, "off", ""],
+          "strict": false,
+          "default": null
+        }
+      ]
+    }
+  },
+  "city_raw": {
+    "city_normalized": {
+      "source": "city_raw",
+      "target": "city_normalized",
+      "operations": [
+        {
+          "operation": "normalize_text",
+          "normalization": "lower"
+        }
+      ]
+    }
+  },
+  "thermometer_c": {
+    "calibrated_c": {
+      "source": "thermometer_c",
+      "target": "calibrated_c",
+      "operations": [
+        {
+          "operation": "offset",
+          "offset": 0.5
+        }
+      ]
+    }
+  },
+  "week_hours": {
+    "total_hours": {
+      "source": "week_hours",
+      "target": "total_hours",
+      "operations": [
+        {
+          "operation": "parse_array",
+          "format": "json",
+          "item_type": "integer",
+          "strict": true
+        },
+        {
+          "operation": "reduce",
+          "reduction": "sum"
+        }
+      ]
+    }
+  },
+  "medication_dose_mg": {
+    "medication_dose_mg_rounded": {
+      "source": "medication_dose_mg",
+      "target": "medication_dose_mg_rounded",
+      "operations": [
+        {
+          "operation": "round",
+          "precision": 2
+        }
+      ]
+    }
+  },
+  "price_usd": {
+    "price_cents": {
+      "source": "price_usd",
+      "target": "price_cents",
+      "operations": [
+        {
+          "operation": "scale",
+          "scaling_factor": 100
+        }
+      ]
+    }
+  },
+  "name_last_first": {
+    "name_first_last": {
+      "source": "name_last_first",
+      "target": "name_first_last",
+      "operations": [
+        {
+          "operation": "substitute",
+          "expression": "^\\s*([^,]+),\\s*(.+)$",
+          "substitution": "\\2 \\1"
+        }
+      ]
+    }
+  },
+  "pulse_rate": {
+    "pulse_rate_clamped": {
+      "source": "pulse_rate",
+      "target": "pulse_rate_clamped",
+      "operations": [
+        {
+          "operation": "threshold",
+          "lower": 40,
+          "upper": 200
+        }
+      ]
+    }
+  },
+  "username": {
+    "username_short": {
+      "source": "username",
+      "target": "username_short",
+      "operations": [
+        {
+          "operation": "truncate",
+          "length": 8
+        }
+      ]
+    }
+  }
+}

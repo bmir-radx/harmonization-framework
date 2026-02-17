@@ -11,6 +11,7 @@ from harmonization_framework.primitives import (
     NormalizeBoolean,
     NormalizeText,
     Offset,
+    ParseArray,
     Reduce,
     Round,
     Scale,
@@ -350,6 +351,53 @@ def test_reduce_serialization_and_transform():
     assert roundtrip.to_dict() == payload
 
     assert primitive.transform([1, 2, 3]) == 6
+
+
+def test_parse_array_json_default_serialization_and_transform():
+    primitive = ParseArray()
+    payload = primitive.to_dict()
+
+    assert payload == {
+        "operation": "parse_array",
+        "format": "json",
+        "item_type": "auto",
+        "strict": True,
+        "allow_singleton": False,
+    }
+
+    roundtrip = ParseArray.from_serialization(payload)
+    assert roundtrip.to_dict() == payload
+    assert primitive.transform("[1, 2, 3]") == [1, 2, 3]
+    assert primitive.transform((1, 2, 3)) == [1, 2, 3]
+
+
+def test_parse_array_delimiter_pipe_and_newline_supported():
+    pipe_parser = ParseArray(format="delimiter", delimiter="|", item_type="integer")
+    newline_parser = ParseArray(format="delimiter", delimiter="\\n", item_type="integer")
+
+    assert pipe_parser.transform("8|8|8|8|6") == [8, 8, 8, 8, 6]
+    assert pipe_parser.transform(" 8 | 8 | 8 | 8 | 6 ") == [8, 8, 8, 8, 6]
+    assert newline_parser.transform("1\n2\n3") == [1, 2, 3]
+    assert newline_parser.transform("1\r\n2\r\n3") == [1, 2, 3]
+
+
+def test_parse_array_non_strict_default_on_failure():
+    primitive = ParseArray(strict=False, default=[])
+    assert primitive.transform("not valid json") == []
+
+
+def test_parse_array_boolean_item_type_matches_normalize_boolean_defaults():
+    primitive = ParseArray(item_type="boolean")
+    assert primitive.transform("[\" yes \", \"off\", \"1\", \"0\"]") == [True, False, True, False]
+
+
+def test_parse_array_boolean_item_type_rejects_unknown_like_normalize_boolean():
+    strict_primitive = ParseArray(item_type="boolean")
+    non_strict_primitive = ParseArray(item_type="boolean", strict=False, default=[])
+
+    with pytest.raises(ValueError, match="Failed to parse array"):
+        strict_primitive.transform("[2]")
+    assert non_strict_primitive.transform("[2]") == []
 
 
 def test_reduce_rejects_non_list():

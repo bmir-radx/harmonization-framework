@@ -11,6 +11,7 @@ class PrimitiveVocabulary(Enum):
     NORMALIZE_BOOLEAN = "normalize_boolean"
     NORMALIZE_TEXT = "normalize_text"
     OFFSET = "offset"
+    PARSE_ARRAY = "parse_array"
     REDUCE = "reduce"
     ROUND = "round"
     SCALE = "scale"
