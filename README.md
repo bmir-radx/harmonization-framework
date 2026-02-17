@@ -135,6 +135,7 @@ All settings are provided in the operation dict for rule serialization.
 | `normalize_boolean` | Normalize truthy/falsy values to booleans. | `truthy` (list, optional; defaults below)<br>`falsy` (list, optional; defaults below)<br>`strict` (bool, default `true`)<br>`default` (optional; used when `strict=false`) |
 | `normalize_text` | Apply a single text normalization. | `normalization` (`strip`, `lower`, `upper`, `remove_accents`, `remove_punctuation`, `remove_special_characters`) |
 | `offset` | Add an offset to numeric values. | `offset` (number) |
+| `parse_array` | Parse array-like values into a list for downstream operations. | `format` (`json` default, `delimiter`)<br>`delimiter` (string; used for `delimiter` format, default `|`, supports `\\n` for newline)<br>`item_type` (`auto`, `string`, `integer`, `float`, `boolean`)<br>`strict` (bool, default `true`)<br>`default` (optional; used when `strict=false`)<br>`allow_singleton` (bool, default `false`) |
 | `reduce` | Reduce a list of values to one value. | `reduction` (`any`, `none`, `all`, `one-hot`, `sum`); expects a list/tuple input; one-hot returns index or None |
 | `round` | Round numeric values to a given precision. | `precision` (int, >=0); uses Python `round` semantics |
 | `scale` | Multiply numeric values by a factor. | `scaling_factor` (number) |
@@ -162,6 +163,7 @@ Each operation is represented by a JSON-friendly dict. Examples:
 | `normalize_boolean` | `{"operation":"normalize_boolean","truthy":["yes","y","1"],"falsy":["no","n","0"],"strict":true}` |
 | `normalize_text` | `{"operation":"normalize_text","normalization":"lower"}` |
 | `offset` | `{"operation":"offset","offset":2.5}` |
+| `parse_array` | `{"operation":"parse_array","format":"json","item_type":"integer","strict":true}` |
 | `reduce` | `{"operation":"reduce","reduction":"one-hot"}` |
 | `round` | `{"operation":"round","precision":2}` |
 | `scale` | `{"operation":"scale","scaling_factor":0.453592}` |
@@ -176,3 +178,31 @@ If you use the `normalize_boolean` primitive without specifying `truthy` or
 
 - truthy: `["true", "t", "yes", "y", "1", 1, true, "on"]`
 - falsy: `["false", "f", "no", "n", "0", 0, false, "off", ""]`
+
+### ParseArray + Reduce for CSV data
+
+When arrays are serialized as text in CSV (for example `"[8,8,8,8,6]"` or
+`"8|8|8|8|6"`), chain `parse_array` before `reduce`:
+
+```json
+{
+  "source": "week_hours",
+  "target": "total_hours",
+  "operations": [
+    {"operation": "parse_array", "format": "json", "item_type": "integer", "strict": true},
+    {"operation": "reduce", "reduction": "sum"}
+  ]
+}
+```
+
+For delimiter input, use:
+
+```json
+{"operation": "parse_array", "format": "delimiter", "delimiter": "|", "item_type": "integer"}
+```
+
+For newline-separated input, use:
+
+```json
+{"operation": "parse_array", "format": "delimiter", "delimiter": "\\n", "item_type": "integer"}
+```
