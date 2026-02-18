@@ -137,14 +137,15 @@ def test_cli_missing_behavior(tmp_path, capsys):
     assert set(reader.fieldnames) == {"c"}
     assert out_rows == [{"c": "1"}]
 
-    # error should raise
-    with pytest.raises(ValueError, match="Missing source columns"):
+    # error should surface as argparse failure (SystemExit code 2)
+    with pytest.raises(SystemExit) as exc:
         cli.main([
             "--rules", str(rules_path),
             "--input", str(input_path),
             "--output", str(output_path),
             "--on-missing", "error",
         ])
+    assert exc.value.code == 2
 
 
 def test_cli_tsv_autodetect(tmp_path):

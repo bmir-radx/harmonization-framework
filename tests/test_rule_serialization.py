@@ -2,7 +2,8 @@ import json
 import pytest
 
 from harmonization_framework.harmonization_rule import HarmonizationRule
-from harmonization_framework.primitives import Cast, DoNothing, Round
+from harmonization_framework.primitives import Cast, DoNothing, ParseArray, Reduce, Round
+from harmonization_framework.primitives.reduce import Reduction
 
 
 def test_rule_serializes_with_empty_operations():
@@ -50,3 +51,15 @@ def test_rule_from_serialization_unknown_operation_raises():
 def test_rule_transform_with_do_nothing():
     rule = HarmonizationRule("x", "y", [DoNothing()])
     assert rule.transform("abc") == "abc"
+
+
+def test_rule_with_parse_array_then_reduce_sum():
+    rule = HarmonizationRule(
+        "week_hours",
+        "total_hours",
+        [ParseArray(), Reduce(Reduction.SUM)],
+    )
+    payload = rule.serialize()
+
+    roundtrip = HarmonizationRule.from_serialization(payload)
+    assert roundtrip.transform("[8, 8, 8, 8, 6]") == 38

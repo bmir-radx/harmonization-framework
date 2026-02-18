@@ -1,0 +1,4 @@
+age_years,zip_code_text,visit_date_iso,weight_kg,record_id,bmi,smoker_response,city_raw,thermometer_c,week_hours,medication_dose_mg,price_usd,name_last_first,pulse_rate,username
+34,02139,2026-02-17,70.5,REC-0001,27.345,Yes,"  New York  ",36.6,"[8,8,8,8,6]",2.675,19.99,"DOE, Jane",220,alexandria
+12,60614,2025-12-31,82.0,REC-0002,18.0,No,"  San Francisco  ",37.1,"[10,10,10,10,5]",1.005,3.5,"SMITH, John",35,bo
+70,98101,2024-07-04,95.2,REC-0003,31.889,unknown,"  Austin  ",36.2,"[0,0,0,0,0]",0.999,120.0,"LEE, Ada",88,charlie
