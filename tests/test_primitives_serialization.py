@@ -42,6 +42,21 @@ def test_bin_serialization_and_transform():
     assert primitive.transform([3, 12]) == [low_label, high_label]
 
 
+def test_bin_string_labels_roundtrip_and_transform():
+    primitive = Bin([("child", (0, 12)), ("adult", (13, 120))])
+    payload = primitive.to_dict()
+
+    assert payload["bins"] == [
+        {"label": "child", "start": 0, "end": 12},
+        {"label": "adult", "start": 13, "end": 120},
+    ]
+
+    roundtrip = Bin.from_serialization(payload)
+    assert roundtrip.to_dict() == payload
+    assert roundtrip.transform(7) == "child"
+    assert roundtrip.transform(34) == "adult"
+
+
 def test_bin_rejects_overlapping_bins():
     with pytest.raises(ValueError, match="Overlapping bins detected"):
         Bin([(1, (0, 10)), (2, (10, 20))])
