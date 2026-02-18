@@ -1,8 +1,8 @@
 from .base import PrimitiveOperation, support_iterable
-from typing import List, Tuple
+from typing import Any, List, Tuple
 
 class _IntervalNode:
-    def __init__(self, label: int, lower: int, upper: int, left=None, right=None):
+    def __init__(self, label: Any, lower: int, upper: int, left=None, right=None):
         self.label = label
         self.lower = lower
         self.upper = upper
@@ -15,7 +15,7 @@ class Bin(PrimitiveOperation):
     Assign values into histogram bins. 
     Performs a range query using an interval tree. Bins must not overlap.
     """
-    def __init__(self, bins: List[Tuple[int, Tuple[int]]]):
+    def __init__(self, bins: List[Tuple[Any, Tuple[int, int]]]):
         self.bins = self._validate_bins(bins)
         self._tree = self._build_tree(self.bins, 0, len(self.bins)-1)
 
@@ -35,13 +35,13 @@ class Bin(PrimitiveOperation):
         return output
 
     @support_iterable
-    def transform(self, value: int) -> int:
+    def transform(self, value: int) -> Any:
         transformed = self._query(value, self._tree)
         if transformed is None:
             print(f"Warning: value={value} does not belong to a bin.")
         return transformed
 
-    def _query(self, value: int, node: _IntervalNode) -> int:
+    def _query(self, value: int, node: _IntervalNode) -> Any:
         if node is None:
             return None
         if value < node.lower:
@@ -52,7 +52,7 @@ class Bin(PrimitiveOperation):
             return node.label
         return None
 
-    def _build_tree(self, bins: List[Tuple[int, Tuple[int]]], left: int, right: int):
+    def _build_tree(self, bins: List[Tuple[Any, Tuple[int, int]]], left: int, right: int):
         if left > right:
             return None
         
@@ -68,7 +68,7 @@ class Bin(PrimitiveOperation):
         )
         return node
 
-    def _validate_bins(self, bins: List[Tuple[int, Tuple[int]]]) -> List[Tuple[int, Tuple[int]]]:
+    def _validate_bins(self, bins: List[Tuple[Any, Tuple[int, int]]]) -> List[Tuple[Any, Tuple[int, int]]]:
         normalized = []
         for label, (start, end) in bins:
             if start > end:
@@ -91,7 +91,7 @@ class Bin(PrimitiveOperation):
     @classmethod
     def from_serialization(cls, serialization):
         bins = [
-            (int(interval["label"]), (int(interval["start"]), int(interval["end"])))
+            (interval["label"], (int(interval["start"]), int(interval["end"])))
             for interval in serialization["bins"]
         ]
         return Bin(bins)
