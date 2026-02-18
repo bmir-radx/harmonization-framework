@@ -25,6 +25,7 @@ def test_rule_serialization_roundtrip_and_transform():
         "age_text",
         "age_years",
         [Cast("text", "integer"), Round(0)],
+        metadata={"comments": ["source: demo"], "provenance": "demo"},
     )
 
     payload = rule.serialize()
