@@ -7,27 +7,27 @@
         {
           "operation": "bin",
           "bins": [
-            {"label": 1, "start": 0, "end": 12},
-            {"label": 2, "start": 13, "end": 17},
-            {"label": 3, "start": 18, "end": 64},
-            {"label": 4, "start": 65, "end": 120}
+            {"label": "child", "start": 0, "end": 12},
+            {"label": "teen", "start": 13, "end": 17},
+            {"label": "adult", "start": 18, "end": 64},
+            {"label": "senior", "start": 65, "end": 120}
           ]
         }
       ]
     }
   },
-  "age_group": {
-    "age_group_label": {
-      "source": "age_group",
-      "target": "age_group_label",
+  "triage_code": {
+    "triage_label": {
+      "source": "triage_code",
+      "target": "triage_label",
       "operations": [
         {
           "operation": "enum_to_enum",
           "mapping": {
-            "1": "child",
-            "2": "teen",
-            "3": "adult",
-            "4": "senior"
+            "1": "critical",
+            "2": "urgent",
+            "3": "standard",
+            "4": "low"
           },
           "default": "unknown",
           "strict": false
@@ -143,13 +143,27 @@
       "operations": [
         {
           "operation": "parse_array",
-          "format": "json",
+          "format": "delimiter",
           "item_type": "integer",
           "strict": true
         },
         {
           "operation": "reduce",
           "reduction": "sum"
+        }
+      ]
+    }
+  },
+  "week_hours_json": {
+    "week_hours_json_parsed": {
+      "source": "week_hours_json",
+      "target": "week_hours_json_parsed",
+      "operations": [
+        {
+          "operation": "parse_array",
+          "format": "json",
+          "item_type": "integer",
+          "strict": true
         }
       ]
     }
