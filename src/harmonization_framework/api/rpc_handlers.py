@@ -1,13 +1,13 @@
 import os
 import threading
 import uuid
-from typing import Dict, List, Optional, Tuple
+from typing import Optional, Tuple
 
 import pandas as pd
 
 from harmonization_framework.harmonize import harmonize_dataset
 from harmonization_framework.replay_log import replay_logger as rlog
-from harmonization_framework.rule_registry import RuleRegistry
+from harmonization_framework.rule_registry import RuleSet
 from harmonization_framework.api.rpc_errors import ErrorCode, build_error
 from harmonization_framework.api.rpc_jobs import (
     JobId,
@@ -66,55 +66,20 @@ def _validate_paths(params: HarmonizeParams) -> Optional[RpcResponse]:
     return None
 
 
-def _load_rules(params: HarmonizeParams) -> Tuple[Optional[RuleRegistry], Optional[RpcResponse]]:
-    """Load a RuleRegistry from a rules JSON file."""
-    registry = RuleRegistry()
+def _load_rules(params: HarmonizeParams) -> Tuple[Optional[RuleSet], Optional[RpcResponse]]:
+    """Load a RuleSet from a rules JSON file."""
+    rules = RuleSet()
     try:
-        registry.load(params.rules_file_path, clean=True)
+        rules.load(params.rules_file_path, clean=True)
     except Exception as exc:
         return None, build_error(ErrorCode.INVALID_FORMAT, f"Failed to load rules: {exc}")
-    return registry, None
-
-
-def _resolve_harmonization_pairs(
-    params: HarmonizeParams, registry: RuleRegistry
-) -> Tuple[Optional[List[Tuple[str, str]]], Optional[RpcResponse]]:
-    """
-    Resolve requested (source, target) pairs based on mode and availability.
-
-    - mode="all": return all pairs from the rules registry (error if empty).
-    - mode="pairs": validate that requested pairs exist in the registry.
-
-    Returns (pairs, error). On error, pairs is None and error is a RpcResponse.
-    """
-    if params.mode == "all":
-        pairs = registry.list_pairs()
-        if not pairs:
-            return None, build_error(
-                ErrorCode.RULE_NOT_FOUND,
-                "No rules found in rules file",
-                details={"path": params.rules_file_path},
-            )
-        return pairs, None
-
-    if not params.harmonization_pairs:
+    if len(rules) == 0:
         return None, build_error(
-            ErrorCode.MISSING_FIELD,
-            "pairs is required when mode is 'pairs'",
-            details={"field": "pairs"},
+            ErrorCode.RULE_NOT_FOUND,
+            "No rules found in rules file",
+            details={"path": params.rules_file_path},
         )
-
-    pairs = [(pair.source, pair.target) for pair in params.harmonization_pairs]
-    for source, target in pairs:
-        try:
-            registry.query(source, target)
-        except Exception:
-            return None, build_error(
-                ErrorCode.RULE_NOT_FOUND,
-                f"Rule not found for source={source} target={target}",
-                details={"source": source, "target": target},
-            )
-    return pairs, None
+    return rules, None
 
 
 def _run_harmonize(job_id: JobId, params: HarmonizeParams) -> None:
@@ -123,11 +88,10 @@ def _run_harmonize(job_id: JobId, params: HarmonizeParams) -> None:
 
     Workflow:
     1) Validate paths and overwrite behavior.
-    2) Load rules from the registry JSON file.
-    3) Resolve rule pairs based on the requested mode.
-    4) Create output/log directories as needed.
-    5) Read input CSV, apply harmonization with row-based progress callbacks.
-    6) Write output CSV and finalize job state.
+    2) Load rules from the rule set JSON file.
+    3) Create output/log directories as needed.
+    4) Read input CSV, apply harmonization with row-based progress callbacks.
+    5) Write output CSV and finalize job state.
 
     On failure, sets job status to "failed" and records a structured error.
     """
@@ -138,12 +102,7 @@ def _run_harmonize(job_id: JobId, params: HarmonizeParams) -> None:
         update_job_status(job_id, status="failed", error=validation_error.error.model_dump())
         return
 
-    registry, error = _load_rules(params)
-    if error:
-        update_job_status(job_id, status="failed", error=error.error.model_dump())
-        return
-
-    pairs, error = _resolve_harmonization_pairs(params, registry)
+    rules, error = _load_rules(params)
     if error:
         update_job_status(job_id, status="failed", error=error.error.model_dump())
         return
@@ -160,8 +119,7 @@ def _run_harmonize(job_id: JobId, params: HarmonizeParams) -> None:
     try:
         harmonized = harmonize_dataset(
             dataset=dataset,
-            harmonization_pairs=pairs,
-            rules=registry,
+            rules=rules,
             dataset_name=os.path.basename(params.data_file_path),
             logger=logger,
             progress_callback=progress_callback,

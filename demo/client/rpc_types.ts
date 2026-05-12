@@ -11,19 +11,18 @@ export type JobStatus = (typeof JOB_STATUS)[keyof typeof JOB_STATUS];
 
 
 // Params accepted by the harmonize RPC method.
+//
+// Every rule in the rules file is applied. To run a subset, supply a
+// rules file containing only the desired targets.
 export interface HarmonizeRequest {
   // Absolute path to the input CSV file.
   data_file_path: string;
-  // Absolute path to the rules JSON file (RuleRegistry.save()).
+  // Absolute path to the rules JSON file (RuleSet.save()).
   rules_file_path: string;
   // Absolute path where the replay log should be written.
   replay_log_file_path: string;
   // Absolute path where the output CSV should be written.
   output_file_path: string;
-  // "pairs" applies only the specified pairs; "all" uses all rules in the registry.
-  mode: "pairs" | "all";
-  // Explicit list of (source, target) pairs to harmonize.
-  pairs?: Array<{ source: string; target: string }>;
   // Overwrite output and replay log files if they already exist.
   overwrite?: boolean;
 }

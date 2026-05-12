@@ -45,12 +45,13 @@ def rpc_call(request: RpcRequest) -> RpcResponse:
     - harmonize:
         params:
           data_file_path: absolute path to input CSV
-          rules_file_path: absolute path to RuleRegistry JSON
+          rules_file_path: absolute path to RuleSet JSON
           replay_log_file_path: absolute path to write replay log
           output_file_path: absolute path to write harmonized CSV
-          mode: "pairs" | "all"
-          pairs: optional list of {source, target} when mode="pairs"
           overwrite: boolean (default false)
+
+        All rules in the rules file are applied. To run a subset, supply a
+        rules file containing only the desired targets.
 
         response:
           status: "accepted"

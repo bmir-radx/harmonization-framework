@@ -6,7 +6,7 @@ from pathlib import Path
 # understand the minimal steps required to use the framework.
 
 from harmonization_framework.harmonize import harmonize_file
-from harmonization_framework.rule_registry import RuleRegistry
+from harmonization_framework.rule_registry import RuleSet
 
 
 def main() -> None:
@@ -22,30 +22,19 @@ def main() -> None:
     output_path = base_dir / "output.csv"
     print("output_path: ", output_path)
 
-    # The RuleRegistry is the in-memory container for all harmonization rules.
-    # Loading the JSON file builds a registry of source/target rules that
-    # harmonize values from the source column into the target column.
-    rules = RuleRegistry()
+    # The RuleSet is the in-memory container for all harmonization rules.
+    # Loading the JSON file builds a flat collection of rules; each rule
+    # declares its source columns and the target column it produces.
+    rules = RuleSet()
     rules.load(str(rules_path), clean=True)
 
-    # Each pair is (source_column, target_column). These names must match
-    # the rules in rules.json. The framework will:
-    # 1) rename the column to the target name
-    # 2) apply the rule for that source/target to each value
-    harmonization_pairs = [
-        ("age", "age_years"),
-        ("weight_lbs", "weight_kg"),
-        ("name", "given_name"),
-        ("name", "family_name"),
-        ("visit_type_code", "visit_type_label"),
-    ]
-
-    # Run the harmonization and save the output CSV.
+    # Run the harmonization and save the output CSV. Every rule in the
+    # RuleSet is applied; to run a subset, build a RuleSet that contains
+    # only the rules you want.
     # dataset_name becomes the value of the "source dataset" column.
     harmonized = harmonize_file(
         input_path=str(input_path),
         output_path=str(output_path),
-        harmonization_pairs=harmonization_pairs,
         rules=rules,
         dataset_name="demo",
     )

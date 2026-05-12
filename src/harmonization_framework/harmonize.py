@@ -1,67 +1,62 @@
 import os
 import pandas as pd
 
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, Optional
 
-from .rule_registry import RuleRegistry
+from .rule_registry import RuleSet
 from .replay_log import replay_logger as rlog
 
 
 def harmonize_dataset(
     dataset: pd.DataFrame,
-    harmonization_pairs: List[Tuple[str]],
-    rules: RuleRegistry,
+    rules: RuleSet,
     dataset_name: str,
     logger=None,
     progress_callback: Optional[Callable[[int, int], None]] = None,
 ) -> pd.DataFrame:
     """
-    Apply harmonization rules to the provided dataset and return a new dataframe.
+    Apply every rule in the rule set to the provided dataset and return a new dataframe.
 
-    This function:
-    - Renames columns based on the provided source/target pairs.
-    - Applies the corresponding harmonization rule to each source column.
-    - Appends `source dataset` and `original_id` metadata columns.
+    For each rule, the columns named in `rule.sources` are read from the dataset
+    and passed (as a list, one element per source) to `rule.transform`. The
+    result is written to a new column named `rule.target`. Single-source rules
+    transparently unwrap to a scalar inside `transform`.
+
+    The output dataframe contains every column from the input plus the produced
+    target columns, along with `source dataset` and `original_id` metadata
+    columns.
 
     Args:
-        dataset: Source dataframe containing the original columns.
-        harmonization_pairs: List of (source, target) column name pairs.
-        rules: RuleRegistry with harmonization rules keyed by source/target.
+        dataset: Source dataframe.
+        rules: RuleSet whose rules will all be applied.
         dataset_name: Name used for the `source dataset` metadata column.
         logger: Optional replay logger for recording applied rules.
         progress_callback: Optional callback invoked with (processed, total) counts.
     """
-    # make a new dataframe with the same number of rows and columns
-    # and rename the columns
     dataset_harmonized = dataset.copy()
-    dataset_harmonized.rename(
-        columns={source: target for source, target in harmonization_pairs},
-        inplace=True,
-    )
-    # apply harmonization rule to each column
-    total_steps = len(dataset) * len(harmonization_pairs) if harmonization_pairs else 0
+
+    rules_list = rules.all_rules()
+    total_steps = len(dataset) * len(rules_list) if rules_list else 0
     processed = 0
 
-    for source, target in harmonization_pairs:
-        print(f"Requested rule: {source} -> {target}")
-        rule = rules.query(source, target)
-        # record action in replay logger
+    for rule in rules_list:
+        print(f"Applying rule -> {rule.target} (sources: {rule.sources})")
         if logger:
             rlog.log_operation(logger, rule, dataset_name)
-        dataset_harmonized.rename(columns={source: target}, inplace=True)
 
-        def transform_with_progress(value):
+        def transform_with_progress(row, _rule=rule):
             nonlocal processed
-            result = rule.transform(value)
+            result = _rule.transform(row.tolist())
             processed += 1
             if progress_callback:
                 progress_callback(processed, total_steps)
             return result
 
-        dataset_harmonized[target] = dataset[source].apply(transform_with_progress)
-    # save source dataset
+        dataset_harmonized[rule.target] = dataset[rule.sources].apply(
+            transform_with_progress, axis=1
+        )
+
     dataset_harmonized["source dataset"] = [dataset_name] * len(dataset)
-    # save old ids
     dataset_harmonized["original_id"] = dataset.index.to_list()
     return dataset_harmonized
 
@@ -69,34 +64,22 @@ def harmonize_dataset(
 def harmonize_file(
     input_path: str,
     output_path: str,
-    harmonization_pairs: List[Tuple[str, str]],
-    rules: RuleRegistry,
+    rules: RuleSet,
     dataset_name: Optional[str] = None,
     logger=None,
 ) -> pd.DataFrame:
     """
     Load a CSV file, apply harmonization, and save the result to disk.
-
-    Args:
-        input_path: Path to the input CSV.
-        output_path: Path where the harmonized CSV will be written.
-        harmonization_pairs: List of (source, target) column name pairs.
-        rules: RuleRegistry with harmonization rules keyed by source/target.
-        dataset_name: Optional label used for the `source dataset` column.
-        logger: Optional replay logger for recording applied rules.
     """
     if dataset_name is None:
         dataset_name = os.path.basename(input_path)
 
-    # Load the input dataset and apply harmonization rules.
     dataset = pd.read_csv(input_path)
     harmonized = harmonize_dataset(
         dataset=dataset,
-        harmonization_pairs=harmonization_pairs,
         rules=rules,
         dataset_name=dataset_name,
         logger=logger,
     )
-    # Persist the output to disk.
     harmonized.to_csv(output_path, index=False)
     return harmonized

@@ -52,14 +52,6 @@ async function main() {
     rules_file_path: rulesFilePath,
     replay_log_file_path: replayLogFilePath,
     output_file_path: outputFilePath,
-    mode: "pairs",
-    pairs: [
-      { source: "age", target: "age_years" },
-      { source: "weight_lbs", target: "weight_kg" },
-      { source: "name", target: "given_name" },
-      { source: "name", target: "family_name" },
-      { source: "visit_type_code", target: "visit_type_label" },
-    ],
     overwrite: true,
   };
 

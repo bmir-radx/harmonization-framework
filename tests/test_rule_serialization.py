@@ -7,11 +7,11 @@ from harmonization_framework.primitives.reduce import Reduction
 
 
 def test_rule_serializes_with_empty_operations():
-    rule = HarmonizationRule("source_col", "target_col", None)
+    rule = HarmonizationRule(["source_col"], "target_col", None)
     payload = rule.serialize()
 
     assert payload == {
-        "source": "source_col",
+        "sources": ["source_col"],
         "target": "target_col",
         "operations": [],
     }
@@ -22,14 +22,14 @@ def test_rule_serializes_with_empty_operations():
 
 def test_rule_serialization_roundtrip_and_transform():
     rule = HarmonizationRule(
-        "age_text",
+        ["age_text"],
         "age_years",
         [Cast("text", "integer"), Round(0)],
         metadata={"comments": ["source: demo"], "provenance": "demo"},
     )
 
     payload = rule.serialize()
-    assert payload["source"] == "age_text"
+    assert payload["sources"] == ["age_text"]
     assert payload["target"] == "age_years"
     assert [op["operation"] for op in payload["operations"]] == ["cast", "round"]
 
@@ -40,7 +40,7 @@ def test_rule_serialization_roundtrip_and_transform():
 
 def test_rule_from_serialization_unknown_operation_raises():
     payload = {
-        "source": "a",
+        "sources": ["a"],
         "target": "b",
         "operations": [{"operation": "not_a_real_op"}],
     }
@@ -50,13 +50,13 @@ def test_rule_from_serialization_unknown_operation_raises():
 
 
 def test_rule_transform_with_do_nothing():
-    rule = HarmonizationRule("x", "y", [DoNothing()])
+    rule = HarmonizationRule(["x"], "y", [DoNothing()])
     assert rule.transform("abc") == "abc"
 
 
 def test_rule_with_parse_array_then_reduce_sum():
     rule = HarmonizationRule(
-        "week_hours",
+        ["week_hours"],
         "total_hours",
         [ParseArray(), Reduce(Reduction.SUM)],
     )
@@ -64,3 +64,33 @@ def test_rule_with_parse_array_then_reduce_sum():
 
     roundtrip = HarmonizationRule.from_serialization(payload)
     assert roundtrip.transform("[8, 8, 8, 8, 6]") == 38
+
+
+def test_rule_legacy_source_key_is_accepted():
+    # Old schema used `"source": "x"` as a scalar string. from_serialization
+    # should silently wrap it into a single-element `sources` list.
+    legacy_payload = {
+        "source": "age_text",
+        "target": "age_years",
+        "operations": [{"operation": "cast", "source": "text", "target": "integer"}],
+    }
+    rule = HarmonizationRule.from_serialization(legacy_payload)
+    assert rule.sources == ["age_text"]
+    assert rule.target == "age_years"
+    assert rule.transform("42") == 42
+
+    # And it re-serializes in the new schema.
+    assert rule.serialize()["sources"] == ["age_text"]
+
+
+def test_multi_source_rule_passes_list_to_operations():
+    # A multi-source rule should pass the full list of values to the first
+    # operation. We use a small custom-style operation by composing primitives
+    # that operate on iterables — Reduce takes a list and reduces it.
+    rule = HarmonizationRule(
+        ["a", "b", "c"],
+        "total",
+        [Reduce(Reduction.SUM)],
+    )
+    assert rule.sources == ["a", "b", "c"]
+    assert rule.transform([1, 2, 3]) == 6
