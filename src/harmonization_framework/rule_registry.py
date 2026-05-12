@@ -1,86 +1,101 @@
+from typing import Iterable, List
+
 from .harmonization_rule import HarmonizationRule
-from .primitives import DoNothing
 
 import json
 
-class RuleRegistry:
-    """
-    In-memory storage for harmonization rules keyed by source and target.
 
-    Rules are stored as a nested dict: {source: {target: HarmonizationRule}}.
+class RuleSet:
     """
+    Flat, target-keyed collection of harmonization rules.
+
+    Rules are stored as a list, but at most one rule per target is allowed.
+    Adding a rule for an existing target replaces it and emits a warning.
+    """
+
     def __init__(self):
-        """
-        Initialize an empty rule store with a built-in no-op rule.
-        """
-        self._rules = {}
-        self._nothing = HarmonizationRule(None, None, [DoNothing()])
+        self._rules: List[HarmonizationRule] = []
 
-    def query(self, source: str, target: str = None) -> HarmonizationRule:
+    def add_rule(self, rule: HarmonizationRule) -> None:
         """
-        Retrieve a rule by source and optional target.
+        Add a rule, or replace the existing rule for the same target.
+        """
+        for i, existing in enumerate(self._rules):
+            if existing.target == rule.target:
+                print(f"Warning: rule already exists for target {rule.target}; replacing.")
+                self._rules[i] = rule
+                return
+        self._rules.append(rule)
 
-        If target is None, returns all rules for a given source.
-        If source == target, returns a no-op rule.
+    def find(self, target: str) -> HarmonizationRule:
         """
-        # support queries using just the source
-        if target is None:
-            return self._rules[source]
-        if source == target:
-            return self._nothing
-        return self._rules[source][target]
+        Return the rule producing the given target, or raise KeyError.
+        """
+        for rule in self._rules:
+            if rule.target == target:
+                return rule
+        raise KeyError(target)
 
-    def add_rule(self, rule: HarmonizationRule):
+    def for_targets(self, targets: Iterable[str]) -> List[HarmonizationRule]:
         """
-        Add or replace a harmonization rule in the store.
+        Return rules whose target appears in `targets`, preserving insertion order.
         """
-        source = rule.source
-        target = rule.target
-        if source not in self._rules:
-            self._rules[source] = {}
-        if target in self._rules[source]:
-            print(f"Warning: rule already exists for source {rule.source} and target {rule.target}.")
-        self._rules[source][target] = rule
+        wanted = set(targets)
+        return [rule for rule in self._rules if rule.target in wanted]
 
-    def list_pairs(self):
-        """
-        Return a list of (source, target) pairs for all stored rules.
-        """
-        pairs = []
-        for source, targets in self._rules.items():
-            for target in targets:
-                pairs.append((source, target))
-        return pairs
+    def all_rules(self) -> List[HarmonizationRule]:
+        return list(self._rules)
 
-    def clean(self):
-        """
-        Remove all rules from the store.
-        """
-        self._rules = {}
+    def all_targets(self) -> List[str]:
+        return [rule.target for rule in self._rules]
 
-    def save(self, output: str = "rules.json"):
+    def __len__(self) -> int:
+        return len(self._rules)
+
+    def __iter__(self):
+        return iter(self._rules)
+
+    def clean(self) -> None:
+        self._rules = []
+
+    def save(self, output: str = "rules.json") -> None:
         """
-        Serialize rules to a JSON file.
+        Serialize rules to a JSON file as a flat array.
         """
-        rules = {}
-        for source in self._rules:
-            rules[source] = {target: rule.serialize() for target, rule in self._rules[source].items()}
+        payload = [rule.serialize() for rule in self._rules]
         with open(output, "w") as out:
-            json.dump(rules, out, indent=2)
+            json.dump(payload, out, indent=2)
 
-    def load(self, rule_file: str, clean: bool = False):
+    def load(self, rule_file: str, clean: bool = False) -> None:
         """
         Load rules from a JSON file, optionally clearing existing rules first.
+
+        Accepts both the new flat-array schema and the legacy nested
+        {source: {target: rule}} schema for migration convenience.
         """
         if clean:
             self.clean()
 
         with open(rule_file, "r") as rf:
-            rules = json.load(rf)
-        for source, rules_from_source in rules.items():
-            for target, rule in rules_from_source.items():
-                self.add_rule(HarmonizationRule.from_serialization(rule))
+            data = json.load(rf)
+
+        for rule_payload in _iter_rule_payloads(data):
+            self.add_rule(HarmonizationRule.from_serialization(rule_payload))
 
 
-# Backwards-compatible alias
-RuleStore = RuleRegistry
+def _iter_rule_payloads(data):
+    """
+    Yield rule payloads from either the flat-array schema or the legacy
+    nested {source: {target: rule}} schema.
+    """
+    if isinstance(data, list):
+        yield from data
+        return
+    if isinstance(data, dict):
+        for _source, targets in data.items():
+            if not isinstance(targets, dict):
+                continue
+            for _target, rule_payload in targets.items():
+                yield rule_payload
+        return
+    raise ValueError(f"Unrecognized rules file format: expected list or dict, got {type(data).__name__}")

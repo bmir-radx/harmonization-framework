@@ -1,75 +1,67 @@
-{
-  "age": {
-    "age_years": {
-      "source": "age",
-      "target": "age_years",
-      "operations": []
-    }
+[
+  {
+    "sources": ["age"],
+    "target": "age_years",
+    "operations": []
   },
-  "weight_lbs": {
-    "weight_kg": {
-      "source": "weight_lbs",
-      "target": "weight_kg",
-      "operations": [
-        {
-          "operation": "scale",
-          "scaling_factor": 0.453592
-        },
-        {
-          "operation": "format_number",
-          "precision": 2
-        }
-      ]
-    }
+  {
+    "sources": ["weight_lbs"],
+    "target": "weight_kg",
+    "operations": [
+      {
+        "operation": "scale",
+        "scaling_factor": 0.453592
+      },
+      {
+        "operation": "format_number",
+        "precision": 2
+      }
+    ]
   },
-  "name": {
-    "given_name": {
-      "source": "name",
-      "target": "given_name",
-      "operations": [
-        {
-          "operation": "substitute",
-          "expression": "^\\s*([^,]+),\\s*(.+)$",
-          "substitution": "\\2"
-        },
-        {
-          "operation": "normalize_text",
-          "normalization": "strip"
-        }
-      ]
-    },
-    "family_name": {
-      "source": "name",
-      "target": "family_name",
-      "operations": [
-        {
-          "operation": "substitute",
-          "expression": "^\\s*([^,]+),\\s*(.+)$",
-          "substitution": "\\1"
-        },
-        {
-          "operation": "normalize_text",
-          "normalization": "strip"
-        }
-      ]
-    }
+  {
+    "sources": ["name"],
+    "target": "given_name",
+    "operations": [
+      {
+        "operation": "substitute",
+        "expression": "^\\s*([^,]+),\\s*(.+)$",
+        "substitution": "\\2"
+      },
+      {
+        "operation": "normalize_text",
+        "normalization": "strip"
+      }
+    ]
   },
-  "visit_type_code": {
-    "visit_type_label": {
-      "source": "visit_type_code",
-      "target": "visit_type_label",
-      "operations": [
-        {
-          "operation": "enum_to_enum",
-          "mapping": {
-            "BL": "baseline",
-            "FU": "follow_up",
-            "SC": "screening"
-          },
-          "default": "unknown",
-          "strict": false
-        }
-      ]
-    }
+  {
+    "sources": ["name"],
+    "target": "family_name",
+    "operations": [
+      {
+        "operation": "substitute",
+        "expression": "^\\s*([^,]+),\\s*(.+)$",
+        "substitution": "\\1"
+      },
+      {
+        "operation": "normalize_text",
+        "normalization": "strip"
+      }
+    ]
+  },
+  {
+    "sources": ["visit_type_code"],
+    "target": "visit_type_label",
+    "operations": [
+      {
+        "operation": "enum_to_enum",
+        "mapping": {
+          "BL": "baseline",
+          "FU": "follow_up",
+          "SC": "screening"
+        },
+        "default": "unknown",
+        "strict": false
+      }
+    ]
   }
-}
+]

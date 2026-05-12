@@ -1,12 +1,12 @@
 import argparse
 import os
-import sys
-from typing import Iterable, List, Sequence, Tuple
+from typing import Iterable, List, Sequence
 
 import pandas as pd
 
 from .harmonize import harmonize_dataset
-from .rule_registry import RuleRegistry
+from .harmonization_rule import HarmonizationRule
+from .rule_registry import RuleSet
 
 
 def _split_list(values: Sequence[str]) -> List[str]:
@@ -23,61 +23,66 @@ def _split_list(values: Sequence[str]) -> List[str]:
 
 
 def _read_table(path: str) -> pd.DataFrame:
-    # Autodetect delimiter based on file extension.
     _, ext = os.path.splitext(path.lower())
     sep = "\t" if ext in {".tsv", ".tab"} else ","
     return pd.read_csv(path, sep=sep)
 
 
 def _write_table(df: pd.DataFrame, path: str) -> None:
-    # Use the same delimiter heuristics as the reader for output.
     _, ext = os.path.splitext(path.lower())
     sep = "\t" if ext in {".tsv", ".tab"} else ","
     df.to_csv(path, index=False, sep=sep)
 
 
-def _load_rules(rule_paths: Iterable[str]) -> RuleRegistry:
-    # Merge multiple rules files into a single registry.
-    registry = RuleRegistry()
+def _load_rules(rule_paths: Iterable[str]) -> RuleSet:
+    # Merge multiple rules files into a single rule set.
+    rules = RuleSet()
     first = True
     for path in rule_paths:
-        registry.load(path, clean=first)
+        rules.load(path, clean=first)
         first = False
-    return registry
+    return rules
 
 
-def _select_pairs(
-    all_pairs: List[Tuple[str, str]],
-    targets: List[str],
-) -> List[Tuple[str, str]]:
-    # Filter rule pairs by requested targets when provided.
+def _filter_to_targets(rules: RuleSet, targets: List[str]) -> RuleSet:
+    # Apply --targets as a load-time filter on the rule set itself.
     if not targets:
-        return all_pairs
-    target_set = set(targets)
-    return [(source, target) for source, target in all_pairs if target in target_set]
+        return rules
+    filtered = RuleSet()
+    for rule in rules.for_targets(targets):
+        filtered.add_rule(rule)
+    return filtered
 
 
-def _filter_missing(
-    pairs: List[Tuple[str, str]],
+def _filter_missing_sources(
+    rules: RuleSet,
     columns: Iterable[str],
     on_missing: str,
-) -> List[Tuple[str, str]]:
-    # Enforce missing-source behavior: error, warn+skip, or skip.
+) -> RuleSet:
+    # Enforce missing-source behavior: error, warn+skip, or skip. A rule is
+    # considered missing if any of its source columns is absent.
     column_set = set(columns)
-    missing = [pair for pair in pairs if pair[0] not in column_set]
-    if not missing:
-        return pairs
+    missing_rules: List[HarmonizationRule] = []
+    kept_rules: List[HarmonizationRule] = []
+    for rule in rules.all_rules():
+        if all(source in column_set for source in rule.sources):
+            kept_rules.append(rule)
+        else:
+            missing_rules.append(rule)
 
-    if on_missing == "error":
-        missing_sources = ", ".join(sorted({source for source, _ in missing}))
-        raise ValueError(f"Missing source columns: {missing_sources}")
+    if missing_rules:
+        missing_sources = sorted(
+            {source for rule in missing_rules for source in rule.sources if source not in column_set}
+        )
+        if on_missing == "error":
+            raise ValueError(f"Missing source columns: {', '.join(missing_sources)}")
+        if on_missing == "warn":
+            print(f"Warning: skipping missing source columns: {', '.join(missing_sources)}")
 
-    if on_missing == "warn":
-        missing_sources = ", ".join(sorted({source for source, _ in missing}))
-        print(f"Warning: skipping missing source columns: {missing_sources}")
-
-    # skip missing when warn or skip
-    return [pair for pair in pairs if pair[0] in column_set]
+    filtered = RuleSet()
+    for rule in kept_rules:
+        filtered.add_rule(rule)
+    return filtered
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -123,9 +128,7 @@ def main(argv: Sequence[str] | None = None) -> None:
     args = parser.parse_args(argv)
 
     try:
-        # Load and merge all rule files into one registry.
         rules = _load_rules(args.rules)
-        # Read the input dataset (CSV/TSV).
         dataset = _read_table(args.input)
     except FileNotFoundError as exc:
         parser.error(f"{exc.filename} not found.")
@@ -134,33 +137,29 @@ def main(argv: Sequence[str] | None = None) -> None:
         parser.error(str(exc))
         return
 
-    # Determine which targets to generate.
+    # Filter the rule set to requested targets before harmonization.
     targets = _split_list(args.targets)
-    pairs = _select_pairs(rules.list_pairs(), targets)
-    if not pairs:
-        parser.error("No harmonization pairs selected. Check --targets or rules.")
+    rules = _filter_to_targets(rules, targets)
+    if len(rules) == 0:
+        parser.error("No harmonization rules selected. Check --targets or rules.")
         return
 
-    # Drop or error on missing source columns based on CLI flag.
     try:
-        pairs = _filter_missing(pairs, dataset.columns, args.on_missing)
+        rules = _filter_missing_sources(rules, dataset.columns, args.on_missing)
     except ValueError as exc:
         parser.error(str(exc))
         return
-    if not pairs:
-        parser.error("No harmonization pairs available after filtering missing columns.")
+    if len(rules) == 0:
+        parser.error("No harmonization rules available after filtering missing columns.")
         return
 
-    # Default dataset name mirrors input filename if not explicitly set.
     dataset_name = args.dataset_name
     if dataset_name is None:
         dataset_name = os.path.basename(args.input)
 
-    # Apply harmonization.
     try:
         harmonized = harmonize_dataset(
             dataset=dataset,
-            harmonization_pairs=pairs,
             rules=rules,
             dataset_name=dataset_name,
             logger=None,
@@ -169,13 +168,11 @@ def main(argv: Sequence[str] | None = None) -> None:
         parser.error(f"Failed to harmonize: {exc}")
         return
 
-    # Emit only target columns by default, optionally include metadata.
-    target_columns = [target for _, target in pairs]
+    target_columns = rules.all_targets()
     if args.include_metadata:
-        target_columns += ["source dataset", "original_id"]
+        target_columns = target_columns + ["source dataset", "original_id"]
     harmonized = harmonized[target_columns]
 
-    # Persist output with delimiter matched to file extension.
     _write_table(harmonized, args.output)
 
 

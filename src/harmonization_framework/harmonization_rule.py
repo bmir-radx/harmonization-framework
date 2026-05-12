@@ -1,21 +1,19 @@
 from typing import Any, Dict, List, Optional
-from .element import DataElement
 from .primitives.base import PrimitiveOperation
 from .primitives import PrimitiveVocabulary, Bin, Cast, ConvertDate, ConvertUnits, DoNothing, EnumToEnum, FormatNumber, NormalizeBoolean, NormalizeText, Offset, ParseArray, Reduce, Round, Scale, Substitute, Threshold, Truncate
 
 import json
 
-# Backwards-compatible alias
 
 class HarmonizationRule:
     def __init__(
         self,
-        source: DataElement,
-        target: DataElement,
-        transformation: List[PrimitiveOperation] = None,
+        sources: List[str],
+        target: str,
+        transformation: Optional[List[PrimitiveOperation]] = None,
         metadata: Optional[Dict[str, Any]] = None,
     ):
-        self.source = source
+        self.sources = list(sources) if sources is not None else []
         self.target = target
         self._transform = transformation
         self.metadata = metadata
@@ -23,7 +21,7 @@ class HarmonizationRule:
 
     def serialize(self):
         output = {
-            "source": f"{self.source}",
+            "sources": list(self.sources),
             "target": f"{self.target}",
             "operations": [
                 primitive.to_dict() for primitive in (self._transform or [])
@@ -35,15 +33,24 @@ class HarmonizationRule:
 
     def __str__(self):
         text = []
-        for i, transform in enumerate(self._transform):
+        for i, transform in enumerate(self._transform or []):
             text.append(f"Harmonization Operation {i+1}:")
             text.append(str(transform))
         return "\n".join(text)
-    
-    def transform(self, value: Any) -> Any:
+
+    def transform(self, values: Any) -> Any:
         """
         Apply transformation primitives in serial.
+
+        Accepts either a scalar (single-source rule called directly) or a list
+        of values (one per entry in `sources`). Single-source rules unwrap the
+        singleton before passing it to the operations chain so existing
+        primitives continue to receive a scalar.
         """
+        if isinstance(values, list):
+            value = values[0] if len(self.sources) == 1 else values
+        else:
+            value = values
         if self._transform is None:
             return value
         for transform in self._transform:
@@ -52,7 +59,11 @@ class HarmonizationRule:
 
     @classmethod
     def from_serialization(cls, serialization):
-        source = serialization["source"]
+        # Accept both new "sources": [...] schema and legacy "source": "..." key.
+        if "sources" in serialization:
+            sources = list(serialization["sources"])
+        else:
+            sources = [serialization["source"]]
         target = serialization["target"]
         operations = serialization["operations"]
         metadata = serialization.get("metadata")
@@ -96,8 +107,4 @@ class HarmonizationRule:
                 case _:
                     raise ValueError(f"Unknown operation: {operation['operation']}")
             transformation.append(primitive)
-        return HarmonizationRule(source, target, transformation, metadata=metadata)
-
-
-# Backwards-compatible alias
-Rule = HarmonizationRule
+        return HarmonizationRule(sources, target, transformation, metadata=metadata)

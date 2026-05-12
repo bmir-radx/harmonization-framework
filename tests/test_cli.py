@@ -14,33 +14,29 @@ def _write_csv(path: Path, rows, fieldnames):
         writer.writerows(rows)
 
 
-def _write_rules(path: Path, rules: dict) -> None:
+def _write_rules(path: Path, rules: list) -> None:
     path.write_text(json.dumps(rules, indent=2) + "\n")
 
 
 def test_cli_harmonize_csv_multiple_rules(tmp_path):
-    rules_a = {
-        "a": {
-            "b": {
-                "source": "a",
-                "target": "b",
-                "operations": [
-                    {"operation": "enum_to_enum", "mapping": {"1": 10, "2": 20}, "strict": True}
-                ],
-            }
+    rules_a = [
+        {
+            "sources": ["a"],
+            "target": "b",
+            "operations": [
+                {"operation": "enum_to_enum", "mapping": {"1": 10, "2": 20}, "strict": True}
+            ],
         }
-    }
-    rules_c = {
-        "c": {
-            "d": {
-                "source": "c",
-                "target": "d",
-                "operations": [
-                    {"operation": "cast", "source": "text", "target": "integer"}
-                ],
-            }
+    ]
+    rules_c = [
+        {
+            "sources": ["c"],
+            "target": "d",
+            "operations": [
+                {"operation": "cast", "source": "text", "target": "integer"}
+            ],
         }
-    }
+    ]
 
     rules_a_path = tmp_path / "rules_a.json"
     rules_c_path = tmp_path / "rules_c.json"
@@ -75,10 +71,10 @@ def test_cli_harmonize_csv_multiple_rules(tmp_path):
 
 
 def test_cli_targets_filter_and_metadata(tmp_path):
-    rules = {
-        "a": {"b": {"source": "a", "target": "b", "operations": []}},
-        "c": {"d": {"source": "c", "target": "d", "operations": []}},
-    }
+    rules = [
+        {"sources": ["a"], "target": "b", "operations": []},
+        {"sources": ["c"], "target": "d", "operations": []},
+    ]
     rules_path = tmp_path / "rules.json"
     _write_rules(rules_path, rules)
 
@@ -108,10 +104,10 @@ def test_cli_targets_filter_and_metadata(tmp_path):
 
 
 def test_cli_missing_behavior(tmp_path, capsys):
-    rules = {
-        "missing_col": {"b": {"source": "missing_col", "target": "b", "operations": []}},
-        "a": {"c": {"source": "a", "target": "c", "operations": []}},
-    }
+    rules = [
+        {"sources": ["missing_col"], "target": "b", "operations": []},
+        {"sources": ["a"], "target": "c", "operations": []},
+    ]
     rules_path = tmp_path / "rules.json"
     _write_rules(rules_path, rules)
 
@@ -149,9 +145,9 @@ def test_cli_missing_behavior(tmp_path, capsys):
 
 
 def test_cli_tsv_autodetect(tmp_path):
-    rules = {
-        "a": {"b": {"source": "a", "target": "b", "operations": []}},
-    }
+    rules = [
+        {"sources": ["a"], "target": "b", "operations": []},
+    ]
     rules_path = tmp_path / "rules.json"
     _write_rules(rules_path, rules)
 
@@ -191,9 +187,9 @@ def test_cli_missing_rules_file(tmp_path):
 
 
 def test_cli_missing_input_file(tmp_path):
-    rules = {
-        "a": {"b": {"source": "a", "target": "b", "operations": []}},
-    }
+    rules = [
+        {"sources": ["a"], "target": "b", "operations": []},
+    ]
     rules_path = tmp_path / "rules.json"
     _write_rules(rules_path, rules)
 
@@ -204,3 +200,28 @@ def test_cli_missing_input_file(tmp_path):
             "--output", str(tmp_path / "output.csv"),
         ])
     assert exc.value.code == 2
+
+
+def test_cli_accepts_legacy_nested_rules_schema(tmp_path):
+    # Legacy nested {source: {target: rule}} schema should still load.
+    legacy_rules = {
+        "a": {"b": {"source": "a", "target": "b", "operations": []}},
+    }
+    rules_path = tmp_path / "rules.json"
+    rules_path.write_text(json.dumps(legacy_rules))
+
+    input_path = tmp_path / "input.csv"
+    _write_csv(input_path, [{"a": "1"}], fieldnames=["a"])
+    output_path = tmp_path / "output.csv"
+
+    cli.main([
+        "--rules", str(rules_path),
+        "--input", str(input_path),
+        "--output", str(output_path),
+    ])
+
+    with output_path.open() as f:
+        reader = csv.DictReader(f)
+        out_rows = list(reader)
+    assert set(reader.fieldnames) == {"b"}
+    assert out_rows == [{"b": "1"}]
