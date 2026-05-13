@@ -1,6 +1,10 @@
-from .base import PrimitiveOperation, isnull
+import logging
 from enum import Enum
 from typing import Any, List
+
+from .base import PrimitiveOperation, isnull
+
+logger = logging.getLogger(__name__)
 
 class Reduction(Enum):
     # boolean operations, e.g., for one-hot conversions
@@ -84,12 +88,12 @@ class Reduce(PrimitiveOperation):
                 raise ValueError(f"One-hot reduction expects 0/1 values, got {value!r}")
         total = sum(values)
         if total != 1:
-            print(f"One-hot reduction error: sum = {total}")
+            logger.warning("One-hot reduction error: sum = %s", total)
             return None
         for i, value in enumerate(values):
             if value:
                 return i
-        print("One-hot reduction error: no flipped bit found")
+        logger.warning("One-hot reduction error: no flipped bit found")
         return None
 
     @classmethod
