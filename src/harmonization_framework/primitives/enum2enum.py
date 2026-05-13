@@ -1,5 +1,9 @@
-from .base import PrimitiveOperation, support_iterable
+import logging
 from typing import Any, Dict
+
+from .base import PrimitiveOperation, support_iterable
+
+logger = logging.getLogger(__name__)
 
 class EnumToEnum(PrimitiveOperation):
     """
@@ -47,8 +51,7 @@ class EnumToEnum(PrimitiveOperation):
         if value not in self.mapping:
             if self.strict:
                 raise KeyError(f"Missing mapping for value: {value}")
-            # this should be a properly logged warning
-            print(f"Warning: value={value} does not have a defined mapping.")
+            logger.warning("Value %r does not have a defined mapping.", value)
             return self.default
         return self.mapping[value]
 

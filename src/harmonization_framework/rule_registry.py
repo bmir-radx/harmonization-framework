@@ -1,8 +1,10 @@
+import json
+import logging
 from typing import Iterable, List
 
 from .harmonization_rule import HarmonizationRule
 
-import json
+logger = logging.getLogger(__name__)
 
 
 class RuleSet:
@@ -22,7 +24,7 @@ class RuleSet:
         """
         for i, existing in enumerate(self._rules):
             if existing.target == rule.target:
-                print(f"Warning: rule already exists for target {rule.target}; replacing.")
+                logger.warning("Rule already exists for target %s; replacing.", rule.target)
                 self._rules[i] = rule
                 return
         self._rules.append(rule)

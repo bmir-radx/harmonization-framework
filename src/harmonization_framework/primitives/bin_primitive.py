@@ -1,5 +1,9 @@
-from .base import PrimitiveOperation, handle_null, support_iterable
+import logging
 from typing import Any, List, Tuple
+
+from .base import PrimitiveOperation, handle_null, support_iterable
+
+logger = logging.getLogger(__name__)
 
 class _IntervalNode:
     def __init__(self, label: Any, lower: int, upper: int, left=None, right=None):
@@ -39,7 +43,7 @@ class Bin(PrimitiveOperation):
     def transform(self, value: int) -> Any:
         transformed = self._query(value, self._tree)
         if transformed is None:
-            print(f"Warning: value={value} does not belong to a bin.")
+            logger.warning("Value %r does not belong to a bin.", value)
         return transformed
 
     def _query(self, value: int, node: _IntervalNode) -> Any:
