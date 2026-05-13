@@ -51,9 +51,21 @@ class NormalizeText(PrimitiveOperation):
 
     def remove_accents(self, value: str) -> str:
         """
-        Remove accents and diacritics using NFKC normalization.
+        Remove accents and diacritics from `value`.
+
+        Uses NFKD (compatibility decomposition) so that pre-composed
+        characters like 'é' (U+00E9) are split into a base letter plus a
+        combining mark before the mark is dropped. The previous NFKC form
+        was a composing normalization and so left composed accents in place
+        — strings like "café" came back unchanged.
+
+        NFKD over NFD was chosen because the compatibility variant also
+        folds presentational variants useful in harmonization (e.g.
+        the ligature 'ﬁ' becomes 'fi', superscripts collapse to digits).
+        Callers needing to preserve those should pre-normalize input to
+        NFC and apply this transform afterwards.
         """
-        normalized = unicodedata.normalize("NFKC", value)
+        normalized = unicodedata.normalize("NFKD", value)
         return "".join(char for char in normalized if not unicodedata.combining(char))
 
     def remove_punctuation(self, value: str) -> str:

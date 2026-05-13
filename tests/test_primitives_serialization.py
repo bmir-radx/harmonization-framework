@@ -301,6 +301,51 @@ def test_normalize_text_serialization_and_transform():
     assert primitive.transform(["AbC", "DeF"]) == ["abc", "def"]
 
 
+def test_normalize_text_remove_accents_handles_composed_input():
+    # Pre-composed accented characters: 'é' is one code point (U+00E9).
+    # The bug we are fixing was that NFKC normalization left these intact,
+    # so the combining-mark filter never removed the accent.
+    primitive = NormalizeText(Normalization.ACCENT)
+    assert primitive.transform("café") == "cafe"
+    assert primitive.transform("résumé") == "resume"
+    assert primitive.transform("naïve") == "naive"
+    assert primitive.transform("piñata") == "pinata"
+    assert primitive.transform("über") == "uber"
+    assert primitive.transform("Ångström") == "Angstrom"
+
+
+def test_normalize_text_remove_accents_handles_decomposed_input():
+    # If the caller hands us a pre-decomposed string (base + combining mark),
+    # accent removal should still work — NFKD is idempotent on already-NFKD input.
+    decomposed_cafe = "café"  # "café" with explicit combining acute
+    primitive = NormalizeText(Normalization.ACCENT)
+    assert primitive.transform(decomposed_cafe) == "cafe"
+
+
+def test_normalize_text_remove_accents_leaves_unaccented_text_unchanged():
+    primitive = NormalizeText(Normalization.ACCENT)
+    assert primitive.transform("hello world") == "hello world"
+    assert primitive.transform("ABC123") == "ABC123"
+
+
+def test_normalize_text_remove_accents_folds_compatibility_forms():
+    # NFKD (compatibility decomposition) is intentional: it folds presentational
+    # variants like the ligature 'ﬁ' to 'fi' and superscript digits to plain
+    # digits, which is what harmonization usually wants.
+    primitive = NormalizeText(Normalization.ACCENT)
+    assert primitive.transform("ﬁle") == "file"
+    assert primitive.transform("x²") == "x2"
+
+
+def test_normalize_text_remove_accents_roundtrip_via_serialization():
+    primitive = NormalizeText(Normalization.ACCENT)
+    payload = primitive.to_dict()
+    assert payload == {"operation": "normalize_text", "normalization": "remove_accents"}
+
+    roundtrip = NormalizeText.from_serialization(payload)
+    assert roundtrip.transform("café") == "cafe"
+
+
 def test_convert_date_serialization_and_transform():
     primitive = ConvertDate("%Y-%m-%d", "%m/%d/%Y")
     payload = primitive.to_dict()
