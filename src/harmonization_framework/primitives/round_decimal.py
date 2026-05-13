@@ -1,4 +1,4 @@
-from .base import PrimitiveOperation, support_iterable
+from .base import PrimitiveOperation, handle_null, support_iterable
 from typing import Union
 
 class Round(PrimitiveOperation):
@@ -30,6 +30,7 @@ class Round(PrimitiveOperation):
         return output
 
     @support_iterable
+    @handle_null
     def transform(self, value: Union[float]) -> Union[float]:
         """
         Round the value to the configured precision.

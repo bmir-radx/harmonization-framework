@@ -1,4 +1,4 @@
-from .base import PrimitiveOperation
+from .base import PrimitiveOperation, isnull
 from enum import Enum
 from typing import Any, List
 
@@ -44,11 +44,23 @@ class Reduce(PrimitiveOperation):
         - any/none/all: boolean reductions (return 0/1)
         - one-hot: return the index of the single active bit (or None on error)
         - sum: numeric sum
+
+        Reduce intentionally rejects null elements rather than silently dropping
+        them. A multi-source rule with a missing source produces a partial input
+        that should be surfaced as a data-quality issue, not papered over. Use
+        the CLI's `--on-missing` policy to control whole-column behavior; if you
+        need to combine values across rows ignoring nulls, drop them upstream.
         """
         if not isinstance(values, (list, tuple)):
             raise TypeError(f"Reduce expects a list or tuple, got {type(values).__name__}")
         if len(values) == 0:
             raise ValueError("Reduce expects a non-empty list of values")
+        for index, value in enumerate(values):
+            if isnull(value):
+                raise ValueError(
+                    f"Reduce received a null value at position {index}; "
+                    f"reduce will not silently drop missing inputs."
+                )
         match self.reduction:
             case Reduction.ANY:
                 return int(any(values))

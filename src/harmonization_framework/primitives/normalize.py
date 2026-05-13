@@ -1,7 +1,7 @@
 import re
 import unicodedata
 
-from .base import PrimitiveOperation, support_iterable
+from .base import PrimitiveOperation, handle_null, support_iterable
 from enum import Enum
 
 class Normalization(Enum):
@@ -31,6 +31,7 @@ class NormalizeText(PrimitiveOperation):
         return output
 
     @support_iterable
+    @handle_null
     def transform(self, value: str) -> str:
         match self.normalization:
             case Normalization.STRIP:

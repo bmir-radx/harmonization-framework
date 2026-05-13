@@ -1,4 +1,4 @@
-from .base import PrimitiveOperation, support_iterable
+from .base import PrimitiveOperation, handle_null, support_iterable
 from typing import Union
 
 class FormatNumber(PrimitiveOperation):
@@ -25,6 +25,7 @@ class FormatNumber(PrimitiveOperation):
         }
 
     @support_iterable
+    @handle_null
     def transform(self, value: Union[int, float]) -> str:
         """Format the numeric value to the configured decimal precision."""
         if not isinstance(value, (int, float)) or isinstance(value, bool):

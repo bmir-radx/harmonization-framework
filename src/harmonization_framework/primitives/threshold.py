@@ -1,4 +1,4 @@
-from .base import PrimitiveOperation, support_iterable
+from .base import PrimitiveOperation, handle_null, support_iterable
 from typing import Union
 
 class Threshold(PrimitiveOperation):
@@ -29,6 +29,7 @@ class Threshold(PrimitiveOperation):
         return output
 
     @support_iterable
+    @handle_null
     def transform(self, value: Union[int, float]) -> Union[int, float]:
         """
         Clamp the input value between lower and upper bounds.

@@ -1,4 +1,4 @@
-from .base import PrimitiveOperation, support_iterable
+from .base import PrimitiveOperation, handle_null, support_iterable
 from typing import Union
 
 class Offset(PrimitiveOperation):
@@ -25,6 +25,7 @@ class Offset(PrimitiveOperation):
         return output
 
     @support_iterable
+    @handle_null
     def transform(self, value: Union[int, float]) -> Union[int, float]:
         """
         Add the configured offset to the input value.
