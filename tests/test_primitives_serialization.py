@@ -8,6 +8,7 @@ from harmonization_framework.primitives import (
     DoNothing,
     EnumToEnum,
     FormatNumber,
+    MapEach,
     NormalizeBoolean,
     NormalizeText,
     Offset,
@@ -460,3 +461,41 @@ def test_do_nothing_serialization_and_transform():
     assert roundtrip.to_dict() == payload
     assert primitive.transform("abc") == "abc"
     assert primitive.transform([1, 2]) == [1, 2]
+
+
+def test_map_each_serialization_and_transform():
+    primitive = MapEach([Cast("text", "integer"), Offset(1)])
+    payload = primitive.to_dict()
+
+    assert payload == {
+        "operation": "map_each",
+        "operations": [
+            {"operation": "cast", "source": "text", "target": "integer"},
+            {"operation": "offset", "offset": 1},
+        ],
+    }
+
+    roundtrip = MapEach.from_serialization(payload)
+    assert roundtrip.to_dict() == payload
+    assert roundtrip.transform(["1", "2", "3"]) == [2, 3, 4]
+
+
+def test_map_each_then_reduce_one_hot_pipeline():
+    # Composing MapEach + Reduce(one-hot) is the canonical multi-source pipeline:
+    # cast each string flag to int, then pick the index of the active bit.
+    map_each = MapEach([Cast("text", "integer")])
+    reduce_onehot = Reduce(Reduction.ONEHOT)
+
+    flags = ["0", "1", "0"]
+    assert reduce_onehot.transform(map_each.transform(flags)) == 1
+
+
+def test_map_each_rejects_non_list():
+    primitive = MapEach([Offset(1)])
+    with pytest.raises(TypeError, match="list or tuple"):
+        primitive.transform(5)
+
+
+def test_map_each_empty_operations_is_identity():
+    primitive = MapEach([])
+    assert primitive.transform([1, 2, 3]) == [1, 2, 3]
