@@ -15,6 +15,7 @@ from .cast import Cast
 from .dates import ConvertDate
 from .donothing import DoNothing
 from .enum2enum import EnumToEnum
+from .extract_regex import ExtractRegex
 from .format_number import FormatNumber
 from .map_each import MapEach
 from .normalize import NormalizeText
@@ -28,6 +29,7 @@ from .substitute import Substitute
 from .threshold import Threshold
 from .truncate import Truncate
 from .units import ConvertUnits
+from .validate_pattern import ValidatePattern
 from .vocabulary import PrimitiveVocabulary
 
 
@@ -51,6 +53,8 @@ def deserialize_operation(operation: Dict[str, Any]) -> PrimitiveOperation:
             return DoNothing.from_serialization(operation)
         case PrimitiveVocabulary.ENUM_TO_ENUM.value:
             return EnumToEnum.from_serialization(operation)
+        case PrimitiveVocabulary.EXTRACT_REGEX.value:
+            return ExtractRegex.from_serialization(operation)
         case PrimitiveVocabulary.FORMAT_NUMBER.value:
             return FormatNumber.from_serialization(operation)
         case PrimitiveVocabulary.MAP_EACH.value:
@@ -75,5 +79,7 @@ def deserialize_operation(operation: Dict[str, Any]) -> PrimitiveOperation:
             return Threshold.from_serialization(operation)
         case PrimitiveVocabulary.TRUNCATE.value:
             return Truncate.from_serialization(operation)
+        case PrimitiveVocabulary.VALIDATE_PATTERN.value:
+            return ValidatePattern.from_serialization(operation)
         case _:
             raise ValueError(f"Unknown operation: {name}")

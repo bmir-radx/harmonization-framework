@@ -4,6 +4,7 @@ from .cast import Cast
 from .dates import ConvertDate
 from .donothing import DoNothing
 from .enum2enum import EnumToEnum
+from .extract_regex import ExtractRegex
 from .format_number import FormatNumber
 from .map_each import MapEach
 from .normalize_boolean import NormalizeBoolean
@@ -17,4 +18,5 @@ from .substitute import Substitute
 from .threshold import Threshold
 from .truncate import Truncate
 from .units import ConvertUnits, Unit
+from .validate_pattern import ValidatePattern
 from .vocabulary import PrimitiveVocabulary

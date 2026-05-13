@@ -7,6 +7,7 @@ class PrimitiveVocabulary(Enum):
     CONVERT_UNITS = "convert_units"
     DO_NOTHING = "do_nothing"
     ENUM_TO_ENUM = "enum_to_enum"
+    EXTRACT_REGEX = "extract_regex"
     FORMAT_NUMBER = "format_number"
     MAP_EACH = "map_each"
     NORMALIZE_BOOLEAN = "normalize_boolean"
@@ -19,3 +20,4 @@ class PrimitiveVocabulary(Enum):
     SUBSTITUTE = "substitute"
     THRESHOLD = "threshold"
     TRUNCATE = "truncate"
+    VALIDATE_PATTERN = "validate_pattern"
