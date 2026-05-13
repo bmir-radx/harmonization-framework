@@ -1,4 +1,4 @@
-from .base import PrimitiveOperation, support_iterable
+from .base import PrimitiveOperation, handle_null, support_iterable
 from typing import Any, List, Tuple
 
 class _IntervalNode:
@@ -35,6 +35,7 @@ class Bin(PrimitiveOperation):
         return output
 
     @support_iterable
+    @handle_null
     def transform(self, value: int) -> Any:
         transformed = self._query(value, self._tree)
         if transformed is None:

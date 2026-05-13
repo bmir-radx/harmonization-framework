@@ -1,4 +1,4 @@
-from .base import PrimitiveOperation, support_iterable
+from .base import PrimitiveOperation, handle_null, support_iterable
 
 class Truncate(PrimitiveOperation):
     """
@@ -26,6 +26,7 @@ class Truncate(PrimitiveOperation):
         return output
 
     @support_iterable
+    @handle_null
     def transform(self, value: str) -> str:
         """
         Truncate the input string to the configured length.

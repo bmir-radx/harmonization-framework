@@ -1,6 +1,6 @@
 from typing import Any, List
 
-from .base import PrimitiveOperation
+from .base import PrimitiveOperation, isnull
 
 
 class MapEach(PrimitiveOperation):
@@ -29,10 +29,25 @@ class MapEach(PrimitiveOperation):
         }
 
     def transform(self, values: Any) -> List[Any]:
+        """
+        Apply the nested op chain to every element of `values`.
+
+        MapEach rejects null elements rather than silently passing them
+        through, so that a multi-source rule producing a partial input is
+        surfaced as a data-quality issue. Scalar primitives downstream of
+        MapEach handle their own nulls via @handle_null, but in a multi-source
+        list a null element usually means the source column itself is missing
+        for that row — better to fail loudly.
+        """
         if not isinstance(values, (list, tuple)):
             raise TypeError(f"MapEach expects a list or tuple, got {type(values).__name__}")
         results = []
-        for value in values:
+        for index, value in enumerate(values):
+            if isnull(value):
+                raise ValueError(
+                    f"MapEach received a null value at position {index}; "
+                    f"map_each will not silently pass nulls through."
+                )
             current = value
             for op in self.operations:
                 current = op(current)

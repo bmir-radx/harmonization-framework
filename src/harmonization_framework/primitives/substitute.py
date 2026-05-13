@@ -1,5 +1,5 @@
 import re
-from .base import PrimitiveOperation, support_iterable
+from .base import PrimitiveOperation, handle_null, support_iterable
 
 class Substitute(PrimitiveOperation):
     """
@@ -36,6 +36,7 @@ class Substitute(PrimitiveOperation):
         return output
 
     @support_iterable
+    @handle_null
     def transform(self, value: str) -> str:
         """
         Replace all regex matches in the input with the substitution string.

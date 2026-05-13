@@ -1,10 +1,36 @@
 from typing import Any, Dict
 
 import json
+import math
+
+import pandas as pd
 
 """
 Base interfaces and utilities for primitive operations.
 """
+
+
+def isnull(value: Any) -> bool:
+    """
+    Return True if `value` represents a missing/null value.
+
+    Recognised forms:
+    - Python `None`
+    - `float('nan')` (the legacy missing-value sentinel pandas inserts into
+      numeric columns when a CSV cell is blank)
+    - `pd.NA` (pandas nullable-dtype scalar)
+
+    Lists, tuples, and strings are never considered null — only scalar values are.
+    """
+    if value is None:
+        return True
+    if isinstance(value, float) and math.isnan(value):
+        return True
+    # pd.NA does not compare equal to anything, and `isinstance(pd.NA, ...)`
+    # is not robust across pandas versions, so use `is` against the singleton.
+    if value is pd.NA:
+        return True
+    return False
 
 class PrimitiveOperation:
     def __init__(self):
@@ -62,5 +88,31 @@ def support_iterable(transform):
     def wrapper(self, value):
         if isinstance(value, (list, tuple)):
             return [transform(self, v) for v in value]
+        return transform(self, value)
+    return wrapper
+
+
+def handle_null(transform):
+    """
+    Decorator that makes a scalar transform pass `None`/NaN/pd.NA through unchanged.
+
+    Apply to primitives whose transform expects a non-null scalar (Cast, Scale,
+    Bin, Round, etc.). The decorated method is never called for a null input;
+    the null value is returned as-is.
+
+    Decorator order with `@support_iterable`:
+
+        @support_iterable
+        @handle_null
+        def transform(self, value):
+            ...
+
+    `@support_iterable` is the outermost decorator so that it can fan a list
+    out to per-element calls; each per-element call then goes through
+    `@handle_null` before reaching the real transform.
+    """
+    def wrapper(self, value):
+        if isnull(value):
+            return value
         return transform(self, value)
     return wrapper

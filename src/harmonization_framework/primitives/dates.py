@@ -1,4 +1,4 @@
-from .base import PrimitiveOperation, support_iterable
+from .base import PrimitiveOperation, handle_null, support_iterable
 from datetime import datetime
 
 class ConvertDate(PrimitiveOperation):
@@ -26,6 +26,7 @@ class ConvertDate(PrimitiveOperation):
         return output
 
     @support_iterable
+    @handle_null
     def transform(self, value: str) -> str:
         try:
             dt = datetime.strptime(value, self.source_format)

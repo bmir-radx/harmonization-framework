@@ -1,4 +1,4 @@
-from .base import PrimitiveOperation, support_iterable
+from .base import PrimitiveOperation, handle_null, support_iterable
 from typing import Union
 from enum import Enum
 
@@ -61,6 +61,7 @@ class ConvertUnits(PrimitiveOperation):
         return output
 
     @support_iterable
+    @handle_null
     def transform(self, value: Union[int, float]) -> Union[int, float]:
         """
         Convert the input value to the target unit.
