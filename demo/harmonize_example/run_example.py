@@ -46,6 +46,7 @@ def main() -> None:
         "age_years",
         "weight_kg",
         "visit_type_label",
+        "visit_phase",
         "source dataset",
         "original_id",
     ]

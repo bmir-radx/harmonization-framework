@@ -63,5 +63,30 @@
         "strict": false
       }
     ]
+  },
+  {
+    "sources": ["flag_baseline", "flag_followup", "flag_screening"],
+    "target": "visit_phase",
+    "operations": [
+      {
+        "operation": "reduce",
+        "reduction": "one-hot"
+      },
+      {
+        "operation": "cast",
+        "source": "integer",
+        "target": "text"
+      },
+      {
+        "operation": "enum_to_enum",
+        "mapping": {
+          "0": "baseline",
+          "1": "follow_up",
+          "2": "screening"
+        },
+        "default": "unknown",
+        "strict": false
+      }
+    ]
   }
 ]

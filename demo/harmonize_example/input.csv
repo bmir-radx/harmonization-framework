@@ -1,4 +1,4 @@
-age,weight_lbs,name,visit_type_code
-10,78.26,"Smith, Alice",BL
-5,44.5,"Jones, Bob",FU
-8,92.2,"Nguyen, Carol",SC
+age,weight_lbs,name,visit_type_code,flag_baseline,flag_followup,flag_screening
+10,78.26,"Smith, Alice",BL,1,0,0
+5,44.5,"Jones, Bob",FU,0,1,0
+8,92.2,"Nguyen, Carol",SC,0,0,1
