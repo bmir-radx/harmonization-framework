@@ -24,7 +24,14 @@ def test_cli_harmonize_csv_multiple_rules(tmp_path):
             "sources": ["a"],
             "target": "b",
             "operations": [
-                {"operation": "enum_to_enum", "mapping": {"1": 10, "2": 20}, "strict": True}
+                {
+                    "operation": "enum_to_enum",
+                    # `a` is read from CSV as integers (pandas type inference), so
+                    # the mapping is keyed by ints. The entry-list form keeps them
+                    # as JSON numbers through serialization.
+                    "mapping": [{"from": 1, "to": 10}, {"from": 2, "to": 20}],
+                    "strict": True,
+                }
             ],
         }
     ]

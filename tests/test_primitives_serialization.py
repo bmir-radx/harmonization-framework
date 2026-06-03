@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 from harmonization_framework.primitives import (
@@ -109,7 +111,8 @@ def test_enum_to_enum_serialization_and_transform():
     payload = primitive.to_dict()
 
     assert payload["operation"] == "enum_to_enum"
-    assert payload["mapping"] == {1: 10, 2: 20}
+    # Mapping serializes as a list of {from, to} entries, preserving key type.
+    assert payload["mapping"] == [{"from": 1, "to": 10}, {"from": 2, "to": 20}]
     assert payload["strict"] is False
 
     roundtrip = EnumToEnum.from_serialization(payload)
@@ -121,7 +124,7 @@ def test_enum_to_enum_serialization_and_transform():
 def test_enum_to_enum_string_mapping_roundtrip():
     payload = {
         "operation": "enum_to_enum",
-        "mapping": {"BL": "baseline", "FU": "follow_up"},
+        "mapping": [{"from": "BL", "to": "baseline"}, {"from": "FU", "to": "follow_up"}],
         "default": "unknown",
         "strict": False,
     }
@@ -132,16 +135,17 @@ def test_enum_to_enum_string_mapping_roundtrip():
     assert roundtrip.transform(["BL", "FU", "ZZ"]) == ["baseline", "follow_up", "unknown"]
 
 
-def test_enum_to_enum_string_keys_preserved():
-    payload = {
-        "operation": "enum_to_enum",
-        "mapping": {"1": "one", "2": "two"},
-        "strict": False,
-    }
+def test_enum_to_enum_int_keys_survive_json_roundtrip():
+    # The entry-list form keeps integer keys as JSON numbers, so an int-keyed
+    # map mapping to STRING labels still matches integer inputs after a full
+    # json.dumps/loads cycle — the gotcha that string-keyed JSON objects caused.
+    primitive = EnumToEnum({0: "research", 1: "clinical"}, default="other")
+    reloaded = EnumToEnum.from_serialization(json.loads(json.dumps(primitive.to_dict())))
 
-    roundtrip = EnumToEnum.from_serialization(payload)
-    assert roundtrip.to_dict() == payload
-    assert roundtrip.transform("1") == "one"
+    assert list(reloaded.mapping.keys()) == [0, 1]
+    assert reloaded.transform(0) == "research"
+    assert reloaded.transform(1) == "clinical"
+    assert reloaded.transform(2) == "other"
 
 
 def test_enum_to_enum_default_for_missing_value():
@@ -552,7 +556,11 @@ def test_missing_code_serialization_and_transform():
     payload = primitive.to_dict()
 
     assert payload["operation"] == "missing_code"
-    assert payload["codes"] == {-999: "not_measured", -1: "refused"}
+    # Codes serialize as a list of {code, label} entries, preserving code type.
+    assert payload["codes"] == [
+        {"code": -999, "label": "not_measured"},
+        {"code": -1, "label": "refused"},
+    ]
 
     roundtrip = MissingCode.from_serialization(payload)
     assert roundtrip.to_dict() == payload
@@ -568,18 +576,19 @@ def test_missing_code_list_form_defaults_label():
     primitive = MissingCode([-999, -1])
     payload = primitive.to_dict()
 
-    # A bare list normalises to the default label, and serialises as a dict.
-    assert payload["codes"] == {-999: "missing", -1: "missing"}
+    # A bare list normalises to the default label, and serialises as entries.
+    assert payload["codes"] == [
+        {"code": -999, "label": "missing"},
+        {"code": -1, "label": "missing"},
+    ]
     roundtrip = MissingCode.from_serialization(payload)
     assert roundtrip.to_dict() == payload
     assert roundtrip.transform(-999) is None
 
 
 def test_missing_code_numeric_keys_survive_json_roundtrip():
-    # JSON object keys are always strings; an int code must coerce back to int
-    # so it still matches a numeric input after a rules.json round-trip.
-    import json
-
+    # The entry-list form keeps a numeric code as a JSON number, so it still
+    # matches a numeric input after a full rules.json round-trip.
     primitive = MissingCode({-999: "not_measured"})
     reloaded = MissingCode.from_serialization(json.loads(json.dumps(primitive.to_dict())))
 

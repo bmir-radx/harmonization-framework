@@ -33,10 +33,17 @@ class EnumToEnum(PrimitiveOperation):
     def to_dict(self):
         """
         Serialize this mapping to a JSON-friendly dict.
+
+        The mapping is serialized as a LIST of {"from", "to"} entries rather than
+        a JSON object. JSON object keys are always strings, so an object form
+        would silently coerce non-string keys (e.g. the integer index emitted by
+        Reduce(ONEHOT)) to strings on a round-trip, breaking the lookup. The
+        entry-list keeps each key in a value position, preserving its native JSON
+        type (int stays int, float stays float, str stays str).
         """
         output = {
             "operation": "enum_to_enum",
-            "mapping": self.mapping,
+            "mapping": [{"from": key, "to": value} for key, value in self.mapping.items()],
             "strict": self.strict,
         }
         if self.default is not None:
@@ -59,21 +66,12 @@ class EnumToEnum(PrimitiveOperation):
     def from_serialization(cls, serialization):
         """
         Reconstruct an EnumToEnum mapping from a serialized dict.
+
+        `mapping` is a list of {"from", "to"} entries (see `to_dict`). Each key
+        and value is read back at its native JSON type, so no key-type coercion
+        is needed — int keys stay int, str keys stay str.
         """
-        mapping = serialization["mapping"]
-
-        def is_int_like(value: Any) -> bool:
-            if isinstance(value, bool):
-                return False
-            if isinstance(value, int):
-                return True
-            if isinstance(value, str):
-                stripped = value.strip()
-                return stripped.lstrip("-").isdigit() and stripped != ""
-            return False
-
-        if mapping and all(is_int_like(k) for k in mapping) and all(is_int_like(v) for v in mapping.values()):
-            mapping = {int(key): int(value) for key, value in mapping.items()}
+        mapping = {entry["from"]: entry["to"] for entry in serialization["mapping"]}
         default = serialization.get("default")
         strict = bool(serialization.get("strict", False))
         return EnumToEnum(mapping, default=default, strict=strict)

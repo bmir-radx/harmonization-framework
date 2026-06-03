@@ -53,12 +53,16 @@ class MissingCode(PrimitiveOperation):
         """
         Serialize this operation to a JSON-friendly dict.
 
-        Always emits the normalized {code: label} dict form, so a MissingCode
-        built from a bare list round-trips identically to one built from a dict.
+        Codes are serialized as a LIST of {"code", "label"} entries rather than a
+        JSON object. JSON object keys are always strings, so an object form would
+        coerce a numeric code (e.g. -999) to the string "-999" on a round-trip
+        and the lookup would then miss. The entry-list keeps each code in a value
+        position, preserving its native JSON type. A MissingCode built from a
+        bare list round-trips identically to one built from a dict.
         """
         return {
             "operation": "missing_code",
-            "codes": self.codes,
+            "codes": [{"code": code, "label": label} for code, label in self.codes.items()],
         }
 
     @support_iterable
@@ -81,44 +85,9 @@ class MissingCode(PrimitiveOperation):
         """
         Reconstruct a MissingCode operation from a serialized dict.
 
-        JSON object keys are always strings, so an integer code like -999 or a
-        float code like -999.0 round-trips as the string "-999"/"-999.0" and
-        would no longer match a numeric input. Mirror EnumToEnum's coercion:
-        restore int-like keys to int and float-like keys to float so lookups
-        match identically in-memory and after a rules.json round-trip. Labels
-        (values) are left untouched.
+        `codes` is a list of {"code", "label"} entries (see `to_dict`). Each code
+        is read back at its native JSON type, so a numeric code stays numeric —
+        no key-type coercion is needed.
         """
-        codes = serialization["codes"]
-
-        def is_int_like(value: Any) -> bool:
-            if isinstance(value, bool):
-                return False
-            if isinstance(value, int):
-                return True
-            if isinstance(value, str):
-                stripped = value.strip()
-                return stripped.lstrip("-").isdigit() and stripped != ""
-            return False
-
-        def is_float_like(value: Any) -> bool:
-            if isinstance(value, bool):
-                return False
-            if isinstance(value, (int, float)):
-                return True
-            if isinstance(value, str):
-                try:
-                    float(value)
-                    return True
-                except ValueError:
-                    return False
-            return False
-
-        def coerce_key(key: Any) -> Any:
-            if is_int_like(key):
-                return int(key)
-            if is_float_like(key):
-                return float(key)
-            return key
-
-        coerced = {coerce_key(key): value for key, value in codes.items()}
-        return MissingCode(coerced)
+        codes = {entry["code"]: entry["label"] for entry in serialization["codes"]}
+        return MissingCode(codes)
