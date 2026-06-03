@@ -14,10 +14,13 @@ class Event:
 
         Returns:
             dict with keys:
+            - event: "rule" — discriminates a replayable rule event from the
+              per-value audit events (e.g. missing_code) that also share the log
             - action: serialized harmonization rule
             - dataset: dataset identifier
         """
         log = {
+            "event": "rule",
             "action": self.action.serialize(),
             "dataset": self.dataset,
         }
@@ -87,3 +90,32 @@ def log_operation(logger, action, dataset):
     """
     event = Event(action, dataset)
     logger.info(json.dumps(event.to_log()))
+
+
+def log_missing_code_hits(logger, rule, dataset, hits):
+    """
+    Log one per-value audit event for each missing-value code that was nulled.
+
+    These are NOT replayable rule events — they record, for the audit trail,
+    which source cells matched a declared missing-value code and were turned
+    into nulls. Each line is tagged `"event": "missing_code"` so the replay
+    consumer skips it when rebuilding the rule set.
+
+    Args:
+        logger: configured replay logger.
+        rule: the HarmonizationRule that produced the target column.
+        dataset: dataset identifier (the `source dataset` name).
+        hits: iterable of (row_index, value, label) tuples.
+    """
+    source = rule.sources[0] if rule.sources else None
+    for row_index, value, label in hits:
+        record = {
+            "event": "missing_code",
+            "dataset": dataset,
+            "target": rule.target,
+            "source": source,
+            "row": row_index,
+            "value": value,
+            "label": label,
+        }
+        logger.info(json.dumps(record))

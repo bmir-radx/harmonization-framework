@@ -18,6 +18,7 @@ from .enum2enum import EnumToEnum
 from .extract_regex import ExtractRegex
 from .format_number import FormatNumber
 from .map_each import MapEach
+from .missing_code import MissingCode
 from .normalize import NormalizeText
 from .normalize_boolean import NormalizeBoolean
 from .offset import Offset
@@ -59,6 +60,8 @@ def deserialize_operation(operation: Dict[str, Any]) -> PrimitiveOperation:
             return FormatNumber.from_serialization(operation)
         case PrimitiveVocabulary.MAP_EACH.value:
             return MapEach.from_serialization(operation)
+        case PrimitiveVocabulary.MISSING_CODE.value:
+            return MissingCode.from_serialization(operation)
         case PrimitiveVocabulary.NORMALIZE_BOOLEAN.value:
             return NormalizeBoolean.from_serialization(operation)
         case PrimitiveVocabulary.NORMALIZE_TEXT.value:

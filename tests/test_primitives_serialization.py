@@ -9,6 +9,7 @@ from harmonization_framework.primitives import (
     EnumToEnum,
     FormatNumber,
     MapEach,
+    MissingCode,
     NormalizeBoolean,
     NormalizeText,
     Offset,
@@ -544,3 +545,54 @@ def test_map_each_rejects_non_list():
 def test_map_each_empty_operations_is_identity():
     primitive = MapEach([])
     assert primitive.transform([1, 2, 3]) == [1, 2, 3]
+
+
+def test_missing_code_serialization_and_transform():
+    primitive = MissingCode({-999: "not_measured", -1: "refused"})
+    payload = primitive.to_dict()
+
+    assert payload["operation"] == "missing_code"
+    assert payload["codes"] == {-999: "not_measured", -1: "refused"}
+
+    roundtrip = MissingCode.from_serialization(payload)
+    assert roundtrip.to_dict() == payload
+
+    # A declared code becomes a real null; other values pass through unchanged.
+    assert primitive.transform(-999) is None
+    assert primitive.transform(-1) is None
+    assert primitive.transform(150.0) == 150.0
+    assert primitive.transform([-999, 150.0, -1]) == [None, 150.0, None]
+
+
+def test_missing_code_list_form_defaults_label():
+    primitive = MissingCode([-999, -1])
+    payload = primitive.to_dict()
+
+    # A bare list normalises to the default label, and serialises as a dict.
+    assert payload["codes"] == {-999: "missing", -1: "missing"}
+    roundtrip = MissingCode.from_serialization(payload)
+    assert roundtrip.to_dict() == payload
+    assert roundtrip.transform(-999) is None
+
+
+def test_missing_code_numeric_keys_survive_json_roundtrip():
+    # JSON object keys are always strings; an int code must coerce back to int
+    # so it still matches a numeric input after a rules.json round-trip.
+    import json
+
+    primitive = MissingCode({-999: "not_measured"})
+    reloaded = MissingCode.from_serialization(json.loads(json.dumps(primitive.to_dict())))
+
+    assert list(reloaded.codes.keys()) == [-999]
+    assert reloaded.transform(-999) is None
+    assert reloaded.transform(-999.0) is None
+    assert reloaded.transform(150.0) == 150.0
+
+
+def test_missing_code_rejects_empty_and_bad_type():
+    with pytest.raises(ValueError):
+        MissingCode([])
+    with pytest.raises(ValueError):
+        MissingCode({})
+    with pytest.raises(TypeError):
+        MissingCode("nope")

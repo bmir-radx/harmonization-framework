@@ -7,6 +7,7 @@ from .enum2enum import EnumToEnum
 from .extract_regex import ExtractRegex
 from .format_number import FormatNumber
 from .map_each import MapEach
+from .missing_code import MissingCode
 from .normalize_boolean import NormalizeBoolean
 from .normalize import NormalizeText
 from .offset import Offset

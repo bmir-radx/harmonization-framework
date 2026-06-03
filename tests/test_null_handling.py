@@ -21,6 +21,7 @@ from harmonization_framework.primitives import (
     ConvertUnits,
     FormatNumber,
     MapEach,
+    MissingCode,
     NormalizeText,
     Offset,
     Reduce,
@@ -97,6 +98,21 @@ def test_handle_null_passes_through_and_calls_underlying_only_for_non_null():
 @pytest.mark.parametrize("null", NULLS)
 def test_scale_passes_null_through(null):
     assert _is_same_null(Scale(2.0).transform(null), null)
+
+
+@pytest.mark.parametrize("null", NULLS)
+def test_missing_code_passes_genuine_null_through(null):
+    # MissingCode is not @handle_null (its null check is explicit), but a real
+    # null must never be treated as a code: it passes through unchanged.
+    primitive = MissingCode({-999: "not_measured"})
+    assert _is_same_null(primitive.transform(null), null)
+
+
+def test_missing_code_nulls_only_declared_codes():
+    primitive = MissingCode({-999: "not_measured"})
+    assert primitive.transform(-999) is None      # the code -> real null
+    assert primitive.transform(-998) == -998      # neighbour value untouched
+    assert primitive.transform(0) == 0            # zero is not a code
 
 
 @pytest.mark.parametrize("null", NULLS)
