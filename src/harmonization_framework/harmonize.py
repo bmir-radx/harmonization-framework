@@ -5,6 +5,8 @@ from typing import Callable, Optional
 
 from .rule_registry import RuleSet
 from .replay_log import replay_logger as rlog
+from .primitives.base import isnull
+from .primitives.missing_code import MissingCode
 
 
 def harmonize_dataset(
@@ -56,9 +58,38 @@ def harmonize_dataset(
             transform_with_progress, axis=1
         )
 
+        if logger:
+            _log_missing_code_hits(logger, rule, dataset, dataset_name)
+
     dataset_harmonized["source dataset"] = [dataset_name] * len(dataset)
     dataset_harmonized["original_id"] = dataset.index.to_list()
     return dataset_harmonized
+
+
+def _log_missing_code_hits(logger, rule, dataset, dataset_name):
+    """
+    Report which source cells a rule's MissingCode primitive(s) nulled.
+
+    Correlation to rows is done by re-scanning the (single) source column rather
+    than by threading per-row state through `transform` — the membership test
+    here mirrors `MissingCode.transform` exactly. This is accurate only because
+    MissingCode is intended as the first primitive in a chain, operating on the
+    raw source value; see its docstring.
+    """
+    missing_code_ops = [op for op in (rule._transform or []) if isinstance(op, MissingCode)]
+    if not missing_code_ops or not rule.sources:
+        return
+
+    source_column = dataset[rule.sources[0]]
+    for op in missing_code_ops:
+        hits = []
+        for row_index, value in source_column.items():
+            if isnull(value):
+                continue
+            if value in op.codes:
+                hits.append((row_index, value, op.codes[value]))
+        if hits:
+            rlog.log_missing_code_hits(logger, rule, dataset_name, hits)
 
 
 def harmonize_file(

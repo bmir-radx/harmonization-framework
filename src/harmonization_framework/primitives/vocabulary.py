@@ -10,6 +10,7 @@ class PrimitiveVocabulary(Enum):
     EXTRACT_REGEX = "extract_regex"
     FORMAT_NUMBER = "format_number"
     MAP_EACH = "map_each"
+    MISSING_CODE = "missing_code"
     NORMALIZE_BOOLEAN = "normalize_boolean"
     NORMALIZE_TEXT = "normalize_text"
     OFFSET = "offset"

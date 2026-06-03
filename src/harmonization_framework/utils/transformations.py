@@ -19,14 +19,22 @@ def replay(log_file: str, datasets: Dict[str, pd.DataFrame]):
     """
     Replay a log file against the provided datasets.
 
-    Each line of the log is a JSON event with {"dataset", "action"}, where
+    Each replayable line is a JSON event with {"dataset", "action"}, where
     action is a serialized HarmonizationRule. Rules are grouped by dataset and
     applied in log order via a per-dataset RuleSet.
+
+    The log may also contain non-replayable audit events (e.g. per-value
+    "missing_code" hits). These are skipped here: only events whose `event` key
+    is "rule" build the rule set. Lines with no `event` key are treated as
+    "rule" for backward-compatibility with logs written before the discriminator
+    was introduced.
     """
     events: Dict[str, List[dict]] = {}
     with open(log_file, "r") as f:
         for line in f:
             event = json.loads(line.strip())
+            if event.get("event", "rule") != "rule":
+                continue
             events.setdefault(event["dataset"], []).append(event)
 
     logger = rlog.configure_logger(3, "replay_" + log_file)

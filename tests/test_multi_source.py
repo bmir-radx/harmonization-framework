@@ -108,7 +108,11 @@ def test_cli_runs_multi_source_rule(tmp_path):
                 },
                 {
                     "operation": "enum_to_enum",
-                    "mapping": {"0": "baseline", "1": "follow_up", "2": "screening"},
+                    "mapping": [
+                        {"from": "0", "to": "baseline"},
+                        {"from": "1", "to": "follow_up"},
+                        {"from": "2", "to": "screening"},
+                    ],
                     "strict": True,
                 },
             ],
