@@ -94,7 +94,8 @@ def build_parser() -> argparse.ArgumentParser:
         "--rules",
         required=True,
         action="append",
-        help="Path to a rules JSON file. Can be provided multiple times.",
+        help="Path to a rules file (JSON, or YAML if the path ends in "
+        ".yaml/.yml). Can be provided multiple times.",
     )
     parser.add_argument("--input", required=True, help="Input CSV/TSV file.")
     parser.add_argument("--output", required=True, help="Output CSV/TSV file.")
