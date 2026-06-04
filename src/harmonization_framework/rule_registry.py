@@ -2,9 +2,32 @@ import json
 import logging
 from typing import Iterable, List
 
+import yaml
+
 from .harmonization_rule import HarmonizationRule
 
 logger = logging.getLogger(__name__)
+
+
+def _is_yaml(path: str) -> bool:
+    """Return True if `path` names a YAML file (.yaml / .yml)."""
+    return path.lower().endswith((".yaml", ".yml"))
+
+
+def _blank_line_between_rules(dumped: str) -> str:
+    """
+    Insert a blank line before each top-level rule in dumped YAML (except the
+    first), so a multi-rule file is easy to scan. Top-level rules are the list
+    items that begin at column 0 with "- "; continuation lines are indented and
+    left untouched. Purely cosmetic — the parsed content is unchanged.
+    """
+    lines = dumped.split("\n")
+    out = []
+    for i, line in enumerate(lines):
+        if i > 0 and line.startswith("- "):
+            out.append("")
+        out.append(line)
+    return "\n".join(out)
 
 
 class RuleSet:
@@ -62,15 +85,31 @@ class RuleSet:
 
     def save(self, output: str = "rules.json") -> None:
         """
-        Serialize rules to a JSON file as a flat array.
+        Serialize rules to a flat array file.
+
+        The format is chosen by the file extension: `.yaml`/`.yml` writes YAML,
+        anything else writes JSON. Both encode the same structure (a list of
+        rule dicts), so the choice is purely about which on-disk form you want.
+
+        YAML is emitted with `default_flow_style=None`: scalar-only collections
+        (a `sources` list, a `{from, to}` mapping entry) render inline, while the
+        surrounding structure stays in block form. A blank line is inserted
+        between top-level rules so the file is easy to scan. This keeps the rule
+        skeleton readable while compacting the leaf items.
         """
         payload = [rule.serialize() for rule in self._rules]
         with open(output, "w") as out:
-            json.dump(payload, out, indent=2)
+            if _is_yaml(output):
+                dumped = yaml.safe_dump(payload, sort_keys=False, default_flow_style=None)
+                out.write(_blank_line_between_rules(dumped))
+            else:
+                json.dump(payload, out, indent=2)
 
     def load(self, rule_file: str, clean: bool = False) -> None:
         """
-        Load rules from a JSON file, optionally clearing existing rules first.
+        Load rules from a JSON or YAML file, optionally clearing existing rules
+        first. The format is chosen by the file extension (`.yaml`/`.yml` for
+        YAML, otherwise JSON).
 
         Accepts both the new flat-array schema and the legacy nested
         {source: {target: rule}} schema for migration convenience.
@@ -79,7 +118,10 @@ class RuleSet:
             self.clean()
 
         with open(rule_file, "r") as rf:
-            data = json.load(rf)
+            if _is_yaml(rule_file):
+                data = yaml.safe_load(rf)
+            else:
+                data = json.load(rf)
 
         for rule_payload in _iter_rule_payloads(data):
             self.add_rule(HarmonizationRule.from_serialization(rule_payload))

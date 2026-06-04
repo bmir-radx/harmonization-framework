@@ -13,5 +13,6 @@ pydantic==2.10.6
 pydantic-core==2.27.2
 pyproject-toml==0.1.0
 python-dateutil==2.9.0
+pyyaml==6.0.2
 setuptools==75.8.2
 pytest
