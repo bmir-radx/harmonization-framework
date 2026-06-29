@@ -157,3 +157,45 @@ def test_coalesce_serialization_roundtrip():
     roundtrip = HarmonizationRule.from_serialization(payload)
     assert roundtrip.serialize() == payload
     assert roundtrip.transform([None, 68]) == round(68 * 2.20462)
+
+
+# --- Coalesce with multi-operand branches + combine ----------------------
+# Weight reported either as a single pounds field, OR as stone + pounds (two
+# fields summed). No unit flag, so Coalesce picks whichever branch is populated;
+# the stone+pounds branch uses `combine: "sum"` over two operands.
+
+def _weight_coalesce_combine():
+    return Coalesce(
+        sources=["weight_lbs", "weight_stone", "weight_stone_lbs"],
+        branches=[
+            {"source": "weight_lbs", "operations": [DoNothing()]},
+            {"combine": "sum", "operands": [
+                {"source": "weight_stone", "operations": [Scale(14)]},  # stone -> lbs
+                {"source": "weight_stone_lbs", "operations": []},       # leftover pounds, as-is
+            ]},
+        ],
+        default=None,
+    )
+
+
+def test_coalesce_combine_sums_multioperand_branch():
+    c = _weight_coalesce_combine()
+    # single pounds field populated -> first branch wins, value as-is
+    assert c.transform([150, None, None]) == 150
+    # only stone+pounds populated -> second branch: 10 st * 14 + 7 lb = 147
+    assert c.transform([None, 10, 7]) == 147
+
+
+def test_coalesce_combine_serialization_roundtrip():
+    rule = HarmonizationRule(
+        ["weight_lbs", "weight_stone", "weight_stone_lbs"], "nih_weight",
+        [_weight_coalesce_combine()],
+    )
+    payload = rule.serialize()
+    # the multi-operand branch carries combine="sum" and two operands
+    branch = payload["operations"][0]["branches"][1]
+    assert branch["combine"] == "sum"
+    assert [o["source"] for o in branch["operands"]] == ["weight_stone", "weight_stone_lbs"]
+    roundtrip = HarmonizationRule.from_serialization(payload)
+    assert roundtrip.serialize() == payload
+    assert roundtrip.transform([None, 10, 7]) == 147
