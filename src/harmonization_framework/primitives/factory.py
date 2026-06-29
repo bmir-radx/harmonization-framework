@@ -11,7 +11,9 @@ from typing import Any, Dict
 
 from .base import PrimitiveOperation
 from .bin_primitive import Bin
+from .case import Case
 from .cast import Cast
+from .coalesce import Coalesce
 from .dates import ConvertDate
 from .donothing import DoNothing
 from .enum2enum import EnumToEnum
@@ -44,8 +46,12 @@ def deserialize_operation(operation: Dict[str, Any]) -> PrimitiveOperation:
     match name:
         case PrimitiveVocabulary.BIN.value:
             return Bin.from_serialization(operation)
+        case PrimitiveVocabulary.CASE.value:
+            return Case.from_serialization(operation)
         case PrimitiveVocabulary.CAST.value:
             return Cast.from_serialization(operation)
+        case PrimitiveVocabulary.COALESCE.value:
+            return Coalesce.from_serialization(operation)
         case PrimitiveVocabulary.CONVERT_DATE.value:
             return ConvertDate.from_serialization(operation)
         case PrimitiveVocabulary.CONVERT_UNITS.value:
