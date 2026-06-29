@@ -3,34 +3,33 @@ from typing import Any, Dict, List
 from .base import PrimitiveOperation, isnull
 
 
-def _normalize_terms(branch):
-    """A branch produces one value from one or more 'terms'. Each term computes a
-    value from one source via its own op-chain; a branch with multiple terms combines
-    them with `combine` (a Reduction name string, e.g. 'sum').
+def _normalize_operands(branch):
+    """A branch produces one value from one or more 'operands'. Each operand computes
+    a value from one source via its own op-chain; a branch with multiple operands
+    combines them with `combine` (a Reduction name string, e.g. 'sum').
 
-    Accepts three authoring forms, normalized to the canonical term list:
-      - {"source": "x", "operations": [...]}              -> one term
-      - {"sources": ["a","b"], ... }  is NOT auto-summed; use explicit terms instead
-      - {"terms": [{"source": "a", "operations": [...]}, ...], "combine": "sum"}
+    Accepts two authoring forms, normalized to the canonical operand list:
+      - {"source": "x", "operations": [...]}                  -> one operand
+      - {"operands": [{"source": "a", "operations": [...]}, ...], "combine": "sum"}
     """
-    if "terms" in branch:
-        terms = [{"source": t["source"], "operations": list(t.get("operations", []))}
-                 for t in branch["terms"]]
+    if "operands" in branch:
+        operands = [{"source": o["source"], "operations": list(o.get("operations", []))}
+                    for o in branch["operands"]]
         combine = branch.get("combine")
     else:
-        terms = [{"source": branch["source"], "operations": list(branch.get("operations", []))}]
+        operands = [{"source": branch["source"], "operations": list(branch.get("operations", []))}]
         combine = None
-    return terms, combine
+    return operands, combine
 
 
-def _apply_terms(terms, combine, by_name):
-    """Compute each term's value, then combine. Returns the branch value."""
+def _apply_operands(operands, combine, by_name):
+    """Compute each operand's value, then combine. Returns the branch value."""
     from .reduce import Reduce, Reduction
 
     vals = []
-    for t in terms:
-        current = by_name[t["source"]]
-        for op in t["operations"]:
+    for o in operands:
+        current = by_name[o["source"]]
+        for op in o["operations"]:
             current = op(current)
         vals.append(current)
     if combine is None:
@@ -38,23 +37,18 @@ def _apply_terms(terms, combine, by_name):
     return Reduce(Reduction(combine)).transform(vals)
 
 
-def _term_sources(branch):
-    terms, _ = _normalize_terms(branch)
-    return [t["source"] for t in terms]
-
-
 class Case(PrimitiveOperation):
     """
     Choose one of several branches by switching on a selector source, then compute
-    that branch's value from one or more source terms.
+    that branch's value from one or more source operands.
 
     A multi-source combinator. The rule's `sources` list names every column this
     primitive may read; `transform` receives the values in that same order and
     `Case` zips them back to names internally, so branches address sources by NAME,
     never by fragile positional index.
 
-    A branch is either a single source with an op-chain, or several `terms` (each a
-    source + op-chain) combined with a reduction. The first branch whose `when`
+    A branch is either a single source with an op-chain, or several `operands` (each
+    a source + op-chain) combined with a reduction. The first branch whose `when`
     contains the selector value wins; null/unmatched selector -> `default`.
 
     Single-source branch (RADx-UP weight: unit flag selects pounds-as-is or kg->lbs):
@@ -69,17 +63,17 @@ class Case(PrimitiveOperation):
             ],
         )
 
-    Multi-term branch (RADx-UP height: feet+inches OR meters+cm, summed in inches):
+    Multi-operand branch (RADx-UP height: feet+inches OR meters+cm, summed in inches):
 
         Case(
             sources=["height_units", "ft", "in", "m", "cm"],
             selector="height_units",
             branches=[
-                {"when": ["1"], "combine": "sum", "terms": [
+                {"when": ["1"], "combine": "sum", "operands": [
                     {"source": "ft", "operations": [ConvertUnits(Unit.FEET, Unit.INCH)]},
                     {"source": "in", "operations": []},
                 ]},
-                {"when": ["2"], "combine": "sum", "terms": [
+                {"when": ["2"], "combine": "sum", "operands": [
                     {"source": "m",  "operations": [ConvertUnits(Unit.METER, Unit.INCH)]},
                     {"source": "cm", "operations": [ConvertUnits(Unit.CENTIMETER, Unit.INCH)]},
                 ]},
@@ -92,21 +86,21 @@ class Case(PrimitiveOperation):
         self.selector = selector
         self.branches = []
         for b in branches:
-            terms, combine = _normalize_terms(b)
+            operands, combine = _normalize_operands(b)
             self.branches.append({"when": [str(w) for w in b["when"]],
-                                  "terms": terms, "combine": combine})
+                                  "operands": operands, "combine": combine})
         self.default = default
         if self.selector not in self.sources:
             raise ValueError(f"Case selector {self.selector!r} not in sources {self.sources}")
         for b in self.branches:
-            for t in b["terms"]:
-                if t["source"] not in self.sources:
-                    raise ValueError(f"Case branch source {t['source']!r} not in sources {self.sources}")
+            for o in b["operands"]:
+                if o["source"] not in self.sources:
+                    raise ValueError(f"Case branch source {o['source']!r} not in sources {self.sources}")
 
     def __str__(self):
         lines = [f"Switch on {self.selector}:"]
         for b in self.branches:
-            srcs = "+".join(t["source"] for t in b["terms"])
+            srcs = "+".join(o["source"] for o in b["operands"])
             comb = f" ({b['combine']})" if b["combine"] else ""
             lines.append(f"  when {b['when']} -> {srcs}{comb}")
         lines.append(f"  else -> {self.default!r}")
@@ -127,7 +121,7 @@ class Case(PrimitiveOperation):
         sel_key = str(sel)
         for b in self.branches:
             if sel_key in b["when"]:
-                return _apply_terms(b["terms"], b["combine"], by_name)
+                return _apply_operands(b["operands"], b["combine"], by_name)
         return self.default
 
     def to_dict(self):
@@ -139,9 +133,9 @@ class Case(PrimitiveOperation):
                 {
                     "when": list(b["when"]),
                     "combine": b["combine"],
-                    "terms": [
-                        {"source": t["source"], "operations": [op.to_dict() for op in t["operations"]]}
-                        for t in b["terms"]
+                    "operands": [
+                        {"source": o["source"], "operations": [op.to_dict() for op in o["operations"]]}
+                        for o in b["operands"]
                     ],
                 }
                 for b in self.branches
@@ -155,12 +149,12 @@ class Case(PrimitiveOperation):
 
         branches = []
         for b in serialization["branches"]:
-            terms = [
-                {"source": t["source"],
-                 "operations": [deserialize_operation(op) for op in t.get("operations", [])]}
-                for t in b["terms"]
+            operands = [
+                {"source": o["source"],
+                 "operations": [deserialize_operation(op) for op in o.get("operations", [])]}
+                for o in b["operands"]
             ]
-            branches.append({"when": b["when"], "combine": b.get("combine"), "terms": terms})
+            branches.append({"when": b["when"], "combine": b.get("combine"), "operands": operands})
         return cls(
             sources=serialization["sources"],
             selector=serialization["selector"],

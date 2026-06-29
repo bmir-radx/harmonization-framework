@@ -77,18 +77,18 @@ def test_case_in_harmonize_dataset():
     assert out["nih_weight"].tolist() == [150, round(68 * 2.20462)]
 
 
-# --- Case with multi-term branches (height: feet+inches OR meters+cm) ----
+# --- Case with multi-operand branches (height: feet+inches OR meters+cm) ----
 
 def _height_case():
     return Case(
         sources=["height_units", "ft", "inch", "m", "cm"],
         selector="height_units",
         branches=[
-            {"when": ["1"], "combine": "sum", "terms": [
+            {"when": ["1"], "combine": "sum", "operands": [
                 {"source": "ft", "operations": [ConvertUnits(Unit.FEET, Unit.INCH)]},
                 {"source": "inch", "operations": []},
             ]},
-            {"when": ["2"], "combine": "sum", "terms": [
+            {"when": ["2"], "combine": "sum", "operands": [
                 {"source": "m", "operations": [ConvertUnits(Unit.METER, Unit.INCH)]},
                 {"source": "cm", "operations": [ConvertUnits(Unit.CENTIMETER, Unit.INCH)]},
             ]},
@@ -97,20 +97,20 @@ def _height_case():
     )
 
 
-def test_case_multiterm_feet_inches_sum():
+def test_case_multioperand_feet_inches_sum():
     c = _height_case()
     # 5 ft + 7 in -> 60 + 7 = 67 inches
     assert c.transform(["1", 5, 7, None, None]) == 67
 
 
-def test_case_multiterm_meters_cm_sum():
+def test_case_multioperand_meters_cm_sum():
     c = _height_case()
     # 1 m + 70 cm -> ~39.37 + ~27.56 inches
     result = c.transform(["2", None, None, 1, 70])
     assert abs(result - (1 / 0.0254 + 70 / 2.54)) < 0.01
 
 
-def test_case_multiterm_serialization_roundtrip():
+def test_case_multioperand_serialization_roundtrip():
     rule = HarmonizationRule(
         ["height_units", "ft", "inch", "m", "cm"], "nih_height", [_height_case()]
     )
