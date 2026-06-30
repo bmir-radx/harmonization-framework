@@ -57,7 +57,7 @@ class Case(PrimitiveOperation):
             sources=["weight_units", "weight_lbs", "weight_kgs"],
             selector="weight_units",
             branches=[
-                {"when": ["2"], "source": "weight_lbs", "operations": []},
+                {"when": ["2"], "source": "weight_lbs", "operations": [DoNothing()]},
                 {"when": ["1"], "source": "weight_kgs",
                  "operations": [ConvertUnits(Unit.KILOGRAM, Unit.POUNDS), Round(0)]},
             ],
@@ -71,7 +71,7 @@ class Case(PrimitiveOperation):
             branches=[
                 {"when": ["1"], "combine": "sum", "operands": [
                     {"source": "ft", "operations": [ConvertUnits(Unit.FEET, Unit.INCH)]},
-                    {"source": "in", "operations": []},
+                    {"source": "in", "operations": [DoNothing()]},
                 ]},
                 {"when": ["2"], "combine": "sum", "operands": [
                     {"source": "m",  "operations": [ConvertUnits(Unit.METER, Unit.INCH)]},

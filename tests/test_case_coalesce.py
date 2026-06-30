@@ -86,7 +86,7 @@ def _height_case():
         branches=[
             {"when": ["1"], "combine": "sum", "operands": [
                 {"source": "ft", "operations": [ConvertUnits(Unit.FEET, Unit.INCH)]},
-                {"source": "inch", "operations": []},
+                {"source": "inch", "operations": [DoNothing()]},
             ]},
             {"when": ["2"], "combine": "sum", "operands": [
                 {"source": "m", "operations": [ConvertUnits(Unit.METER, Unit.INCH)]},
@@ -171,7 +171,7 @@ def _weight_coalesce_combine():
             {"source": "weight_lbs", "operations": [DoNothing()]},
             {"combine": "sum", "operands": [
                 {"source": "weight_stone", "operations": [Scale(14)]},  # stone -> lbs
-                {"source": "weight_stone_lbs", "operations": []},       # leftover pounds, as-is
+                {"source": "weight_stone_lbs", "operations": [DoNothing()]},  # leftover pounds, as-is
             ]},
         ],
         default=None,
