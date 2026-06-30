@@ -3,6 +3,19 @@ from typing import Any, Dict, List
 from .base import PrimitiveOperation, isnull
 
 
+def _selector_key(value):
+    """Normalize a selector value to the string used for `when` matching.
+
+    CSV/pandas often reads an integer code like 2 as the float 2.0 (its row has
+    blank cells, which promotes the column to float). str(2.0) == '2.0', which
+    would not match a `when` entry of '2'. Treat an integer-valued float as its
+    integer so the flag matches regardless of how the reader typed it.
+    """
+    if isinstance(value, float) and value.is_integer():
+        return str(int(value))
+    return str(value)
+
+
 def _normalize_operands(branch):
     """A branch produces one value from one or more 'operands'. Each operand computes
     a value from one source via its own op-chain; a branch with multiple operands
@@ -87,7 +100,7 @@ class Case(PrimitiveOperation):
         self.branches = []
         for b in branches:
             operands, combine = _normalize_operands(b)
-            self.branches.append({"when": [str(w) for w in b["when"]],
+            self.branches.append({"when": [_selector_key(w) for w in b["when"]],
                                   "operands": operands, "combine": combine})
         self.default = default
         if self.selector not in self.sources:
@@ -118,7 +131,7 @@ class Case(PrimitiveOperation):
         sel = by_name[self.selector]
         if isnull(sel):
             return self.default
-        sel_key = str(sel)
+        sel_key = _selector_key(sel)
         for b in self.branches:
             if sel_key in b["when"]:
                 return _apply_operands(b["operands"], b["combine"], by_name)
