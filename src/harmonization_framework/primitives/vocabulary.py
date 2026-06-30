@@ -2,7 +2,9 @@ from enum import Enum
 
 class PrimitiveVocabulary(Enum):
     BIN = "bin"
+    CASE = "case"
     CAST = "cast"
+    COALESCE = "coalesce"
     CONVERT_DATE = "convert_date"
     CONVERT_UNITS = "convert_units"
     DO_NOTHING = "do_nothing"
