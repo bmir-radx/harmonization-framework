@@ -23,6 +23,21 @@ def test_cli_list_operations(capsys):
     assert "Convert numeric values between units" in out
 
 
+def test_cli_list_operations_json(capsys):
+    import json
+
+    cli.main(["--list-operations", "--format", "json"])
+    entries = json.loads(capsys.readouterr().out)
+    assert {entry["operation"] for entry in entries} == set(OPERATION_CLASSES)
+    for entry in entries:
+        assert entry["summary"]
+        assert entry["help"]
+    # The full help for the combinators includes their authoring examples.
+    case_entry = next(e for e in entries if e["operation"] == "case")
+    assert "selector" in case_entry["help"]
+    assert "branches" in case_entry["help"]
+
+
 def test_cli_list_operations_ignores_other_args(capsys):
     # The list is printed even if other flags are supplied.
     cli.main(["--list-operations", "--on-missing", "warn"])

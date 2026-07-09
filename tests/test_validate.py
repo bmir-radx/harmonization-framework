@@ -90,7 +90,24 @@ def test_validate_unknown_operation(tmp_path):
     problems = validate_rules_file(str(rules_path))
     assert len(problems) == 1
     assert "'frobnicate'" in problems[0]
-    assert "Unknown operation" in problems[0]
+    assert "unknown operation" in problems[0]
+
+
+def test_validate_unknown_operation_suggests_close_match(tmp_path):
+    rules_path = tmp_path / "rules.json"
+    _write_json(
+        rules_path,
+        [
+            {
+                "sources": ["a"],
+                "target": "b",
+                "operations": [{"operation": "normalize_bool"}],
+            }
+        ],
+    )
+    problems = validate_rules_file(str(rules_path))
+    assert len(problems) == 1
+    assert "did you mean 'normalize_boolean'?" in problems[0]
 
 
 def test_validate_bad_operation_settings(tmp_path):
@@ -163,6 +180,15 @@ def test_cli_validate_invalid_exits_nonzero(tmp_path, capsys):
     out = capsys.readouterr().out
     assert f"{rules_path}: INVALID" in out
     assert "frobnicate" in out
+    assert "hint: run 'harmonize --list-operations'" in out
+
+
+def test_cli_validate_no_hint_without_unknown_operation(tmp_path, capsys):
+    rules_path = tmp_path / "rules.json"
+    _write_json(rules_path, [{"target": "b"}])
+    with pytest.raises(SystemExit):
+        cli.main(["--validate", "--rules", str(rules_path)])
+    assert "--list-operations" not in capsys.readouterr().out
 
 
 def test_cli_validate_multiple_files(tmp_path, capsys):
