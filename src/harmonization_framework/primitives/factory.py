@@ -36,6 +36,37 @@ from .validate_pattern import ValidatePattern
 from .vocabulary import PrimitiveVocabulary
 
 
+# Registry of operation name -> primitive class. This is the single source of
+# truth for which operations exist: deserialization dispatches through it, and
+# the CLI's --list-operations derives its listing (with help text from each
+# class docstring) from it.
+OPERATION_CLASSES: Dict[str, type] = {
+    PrimitiveVocabulary.BIN.value: Bin,
+    PrimitiveVocabulary.CASE.value: Case,
+    PrimitiveVocabulary.CAST.value: Cast,
+    PrimitiveVocabulary.COALESCE.value: Coalesce,
+    PrimitiveVocabulary.CONVERT_DATE.value: ConvertDate,
+    PrimitiveVocabulary.CONVERT_UNITS.value: ConvertUnits,
+    PrimitiveVocabulary.DO_NOTHING.value: DoNothing,
+    PrimitiveVocabulary.ENUM_TO_ENUM.value: EnumToEnum,
+    PrimitiveVocabulary.EXTRACT_REGEX.value: ExtractRegex,
+    PrimitiveVocabulary.FORMAT_NUMBER.value: FormatNumber,
+    PrimitiveVocabulary.MAP_EACH.value: MapEach,
+    PrimitiveVocabulary.MISSING_CODE.value: MissingCode,
+    PrimitiveVocabulary.NORMALIZE_BOOLEAN.value: NormalizeBoolean,
+    PrimitiveVocabulary.NORMALIZE_TEXT.value: NormalizeText,
+    PrimitiveVocabulary.OFFSET.value: Offset,
+    PrimitiveVocabulary.PARSE_ARRAY.value: ParseArray,
+    PrimitiveVocabulary.REDUCE.value: Reduce,
+    PrimitiveVocabulary.ROUND.value: Round,
+    PrimitiveVocabulary.SCALE.value: Scale,
+    PrimitiveVocabulary.SUBSTITUTE.value: Substitute,
+    PrimitiveVocabulary.THRESHOLD.value: Threshold,
+    PrimitiveVocabulary.TRUNCATE.value: Truncate,
+    PrimitiveVocabulary.VALIDATE_PATTERN.value: ValidatePattern,
+}
+
+
 def deserialize_operation(operation: Dict[str, Any]) -> PrimitiveOperation:
     """
     Build a PrimitiveOperation from its serialized dict.
@@ -43,52 +74,7 @@ def deserialize_operation(operation: Dict[str, Any]) -> PrimitiveOperation:
     Raises ValueError for unknown operation names.
     """
     name = operation["operation"]
-    match name:
-        case PrimitiveVocabulary.BIN.value:
-            return Bin.from_serialization(operation)
-        case PrimitiveVocabulary.CASE.value:
-            return Case.from_serialization(operation)
-        case PrimitiveVocabulary.CAST.value:
-            return Cast.from_serialization(operation)
-        case PrimitiveVocabulary.COALESCE.value:
-            return Coalesce.from_serialization(operation)
-        case PrimitiveVocabulary.CONVERT_DATE.value:
-            return ConvertDate.from_serialization(operation)
-        case PrimitiveVocabulary.CONVERT_UNITS.value:
-            return ConvertUnits.from_serialization(operation)
-        case PrimitiveVocabulary.DO_NOTHING.value:
-            return DoNothing.from_serialization(operation)
-        case PrimitiveVocabulary.ENUM_TO_ENUM.value:
-            return EnumToEnum.from_serialization(operation)
-        case PrimitiveVocabulary.EXTRACT_REGEX.value:
-            return ExtractRegex.from_serialization(operation)
-        case PrimitiveVocabulary.FORMAT_NUMBER.value:
-            return FormatNumber.from_serialization(operation)
-        case PrimitiveVocabulary.MAP_EACH.value:
-            return MapEach.from_serialization(operation)
-        case PrimitiveVocabulary.MISSING_CODE.value:
-            return MissingCode.from_serialization(operation)
-        case PrimitiveVocabulary.NORMALIZE_BOOLEAN.value:
-            return NormalizeBoolean.from_serialization(operation)
-        case PrimitiveVocabulary.NORMALIZE_TEXT.value:
-            return NormalizeText.from_serialization(operation)
-        case PrimitiveVocabulary.OFFSET.value:
-            return Offset.from_serialization(operation)
-        case PrimitiveVocabulary.PARSE_ARRAY.value:
-            return ParseArray.from_serialization(operation)
-        case PrimitiveVocabulary.REDUCE.value:
-            return Reduce.from_serialization(operation)
-        case PrimitiveVocabulary.ROUND.value:
-            return Round.from_serialization(operation)
-        case PrimitiveVocabulary.SCALE.value:
-            return Scale.from_serialization(operation)
-        case PrimitiveVocabulary.SUBSTITUTE.value:
-            return Substitute.from_serialization(operation)
-        case PrimitiveVocabulary.THRESHOLD.value:
-            return Threshold.from_serialization(operation)
-        case PrimitiveVocabulary.TRUNCATE.value:
-            return Truncate.from_serialization(operation)
-        case PrimitiveVocabulary.VALIDATE_PATTERN.value:
-            return ValidatePattern.from_serialization(operation)
-        case _:
-            raise ValueError(f"Unknown operation: {name}")
+    cls = OPERATION_CLASSES.get(name)
+    if cls is None:
+        raise ValueError(f"Unknown operation: {name}")
+    return cls.from_serialization(operation)

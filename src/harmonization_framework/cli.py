@@ -1,11 +1,14 @@
 import argparse
+import inspect
 import os
+import textwrap
 from typing import Iterable, List, Sequence
 
 import pandas as pd
 
 from .harmonize import harmonize_dataset
 from .harmonization_rule import HarmonizationRule
+from .primitives.factory import OPERATION_CLASSES
 from .rule_registry import RuleSet, validate_rules_file
 
 
@@ -92,8 +95,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--rules",
-        required=True,
         action="append",
+        default=[],
         help="Path to a rules file (JSON, or YAML if the path ends in "
         ".yaml/.yml). Can be provided multiple times.",
     )
@@ -127,7 +130,24 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Include source dataset and original_id columns in output.",
     )
+    parser.add_argument(
+        "--list-operations",
+        action="store_true",
+        help="List the available primitive operations with a short "
+        "description of each, then exit.",
+    )
     return parser
+
+
+def _list_operations() -> None:
+    # Print each operation name with the first paragraph of its class
+    # docstring, so the listing always matches the implemented primitives.
+    for name in sorted(OPERATION_CLASSES):
+        doc = inspect.getdoc(OPERATION_CLASSES[name])
+        summary = " ".join(doc.split("\n\n")[0].split()) if doc else "(no description)"
+        print(name)
+        print(textwrap.fill(summary, width=78, initial_indent="  ", subsequent_indent="  "))
+        print()
 
 
 def _validate_rules(rule_paths: Iterable[str]) -> int:
@@ -149,6 +169,14 @@ def _validate_rules(rule_paths: Iterable[str]) -> int:
 def main(argv: Sequence[str] | None = None) -> None:
     parser = build_parser()
     args = parser.parse_args(argv)
+
+    if args.list_operations:
+        _list_operations()
+        return
+
+    if not args.rules:
+        parser.error("--rules is required unless --list-operations is given.")
+        return
 
     if args.validate:
         raise SystemExit(_validate_rules(args.rules))
