@@ -14,6 +14,12 @@ pip install -r requirements.txt
 pip install .
 ```
 
+To use only the command-line tools (`harmonize` and `harmonization-sidecar`) without setting up a development environment, install with [pipx](https://pipx.pypa.io/), which puts the commands on your PATH in an isolated environment:
+
+```bash
+pipx install git+https://github.com/bmir-radx/harmonization-framework.git
+```
+
 ## Usage
 
 We recommend using the harmonization framework in an interactive Python environment like a Jupyter notebook. A demonstration is provided in `demo/integration.ipynb`.
