@@ -20,6 +20,12 @@ To use only the command-line tools (`harmonize` and `harmonization-sidecar`) wit
 pipx install git+https://github.com/bmir-radx/harmonization-framework.git
 ```
 
+To pin a specific release, append a tag (e.g. `...framework.git@v0.1.0`). To pick up the latest changes later, run `pipx reinstall harmonization-framework` — for packages installed from a git URL this is more reliable than `pipx upgrade`.
+
+## Releases
+
+Every pull request merged to `main` automatically bumps the version in `pyproject.toml` and tags the release (`vX.Y.Z`) via the Bump Version workflow. By default the patch version is bumped; label the PR `release:minor` or `release:major` for a larger bump, or `release:skip` to not release at all.
+
 ## Usage
 
 The harmonization framework in an interactive Python environment like a Jupyter notebook. A demonstration is provided in `demo/integration.ipynb` or it can be used as a CLI tool.
