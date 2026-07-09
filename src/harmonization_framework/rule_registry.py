@@ -1,3 +1,4 @@
+import difflib
 import json
 import logging
 from typing import Iterable, List
@@ -187,7 +188,7 @@ def _validate_rule_payload(index, payload, targets_seen) -> List[str]:
     Validate one rule payload, returning its problems. `targets_seen` maps
     target -> rule number for duplicate detection and is updated in place.
     """
-    from .primitives.factory import deserialize_operation
+    from .primitives.factory import OPERATION_CLASSES, deserialize_operation
 
     if not isinstance(payload, dict):
         return [f"rule {index + 1}: expected a dict, got {type(payload).__name__}"]
@@ -219,8 +220,14 @@ def _validate_rule_payload(index, payload, targets_seen) -> List[str]:
         if not isinstance(op, dict) or "operation" not in op:
             errors.append(f"{where}: operation {op_index + 1}: expected a dict with an 'operation' key")
             continue
+        name = op["operation"]
+        if name not in OPERATION_CLASSES:
+            close = difflib.get_close_matches(str(name), list(OPERATION_CLASSES), n=1)
+            did_you_mean = f" (did you mean {close[0]!r}?)" if close else ""
+            errors.append(f"{where}: operation {op_index + 1}: unknown operation {name!r}{did_you_mean}")
+            continue
         try:
             deserialize_operation(op)
         except Exception as exc:
-            errors.append(f"{where}: operation {op_index + 1} ({op['operation']!r}): {exc}")
+            errors.append(f"{where}: operation {op_index + 1} ({name!r}): {exc}")
     return errors

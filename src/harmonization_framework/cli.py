@@ -1,5 +1,6 @@
 import argparse
 import inspect
+import json
 import os
 import textwrap
 from typing import Iterable, List, Sequence
@@ -136,12 +137,32 @@ def build_parser() -> argparse.ArgumentParser:
         help="List the available primitive operations with a short "
         "description of each, then exit.",
     )
+    parser.add_argument(
+        "--format",
+        choices=["text", "json"],
+        default="text",
+        help="Output format for --list-operations. 'json' emits the full "
+        "help text per operation, for consumption by tools and AI agents.",
+    )
     return parser
 
 
-def _list_operations() -> None:
-    # Print each operation name with the first paragraph of its class
-    # docstring, so the listing always matches the implemented primitives.
+def _list_operations(output_format: str = "text") -> None:
+    # Derive the listing from each class docstring, so it always matches the
+    # implemented primitives. The json form carries the FULL docstring: for
+    # case/coalesce that includes complete authoring examples, which is what
+    # a tool or AI agent needs to write a valid operation, not just name it.
+    if output_format == "json":
+        entries = [
+            {
+                "operation": name,
+                "summary": " ".join((inspect.getdoc(cls) or "").split("\n\n")[0].split()),
+                "help": inspect.getdoc(cls) or "",
+            }
+            for name, cls in sorted(OPERATION_CLASSES.items())
+        ]
+        print(json.dumps(entries, indent=2))
+        return
     for name in sorted(OPERATION_CLASSES):
         doc = inspect.getdoc(OPERATION_CLASSES[name])
         summary = " ".join(doc.split("\n\n")[0].split()) if doc else "(no description)"
@@ -154,6 +175,7 @@ def _validate_rules(rule_paths: Iterable[str]) -> int:
     # Validate each rules file independently and report every problem found.
     # Returns a process exit code: 0 if all files are valid, 1 otherwise.
     exit_code = 0
+    saw_unknown_operation = False
     for path in rule_paths:
         problems = validate_rules_file(path)
         if problems:
@@ -161,8 +183,13 @@ def _validate_rules(rule_paths: Iterable[str]) -> int:
             print(f"{path}: INVALID")
             for problem in problems:
                 print(f"  {problem}")
+            saw_unknown_operation = saw_unknown_operation or any(
+                "unknown operation" in problem for problem in problems
+            )
         else:
             print(f"{path}: OK")
+    if saw_unknown_operation:
+        print("hint: run 'harmonize --list-operations' to see the available operations")
     return exit_code
 
 
@@ -171,7 +198,7 @@ def main(argv: Sequence[str] | None = None) -> None:
     args = parser.parse_args(argv)
 
     if args.list_operations:
-        _list_operations()
+        _list_operations(args.format)
         return
 
     if not args.rules:

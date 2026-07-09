@@ -46,7 +46,7 @@ Notes:
 - By default only target columns are written. Add `--include-metadata` to include `source dataset` and `original_id`.
 - Restrict outputs with `--targets nih_age,nih_sex`.
 - `--dataset-name` sets the dataset name used for metadata columns (defaults to the input file name).
-- `harmonize --list-operations` prints the available primitive operations with a short description of each.
+- `harmonize --list-operations` prints the available primitive operations with a short description of each. Add `--format json` for a machine-readable listing that includes the full help text per operation (with authoring examples for `case`/`coalesce`) — useful for tools and AI agents that write rules files.
 
 #### Validating rules files
 
@@ -58,7 +58,7 @@ harmonize --validate \
   --rules rules/radx_rad_rules.yaml
 ```
 
-Each file is checked independently and every problem is reported — syntax errors, missing or malformed `sources`/`target`/`operations`, unknown operations, invalid operation settings, duplicate targets within a file, and empty files. Prints `OK` or `INVALID` per file and exits with a non-zero status if any file has problems, so it can gate a CI step.
+Each file is checked independently and every problem is reported — syntax errors, missing or malformed `sources`/`target`/`operations`, unknown operations, invalid operation settings, duplicate targets within a file, and empty files. An unknown operation gets a did-you-mean suggestion and a pointer to `--list-operations`. Prints `OK` or `INVALID` per file and exits with a non-zero status if any file has problems, so it can gate a CI step.
 
 ## Serialization Format
 
