@@ -6,7 +6,7 @@ import pandas as pd
 
 from .harmonize import harmonize_dataset
 from .harmonization_rule import HarmonizationRule
-from .rule_registry import RuleSet
+from .rule_registry import RuleSet, validate_rules_file
 
 
 def _split_list(values: Sequence[str]) -> List[str]:
@@ -97,8 +97,14 @@ def build_parser() -> argparse.ArgumentParser:
         help="Path to a rules file (JSON, or YAML if the path ends in "
         ".yaml/.yml). Can be provided multiple times.",
     )
-    parser.add_argument("--input", required=True, help="Input CSV/TSV file.")
-    parser.add_argument("--output", required=True, help="Output CSV/TSV file.")
+    parser.add_argument("--input", help="Input CSV/TSV file.")
+    parser.add_argument("--output", help="Output CSV/TSV file.")
+    parser.add_argument(
+        "--validate",
+        action="store_true",
+        help="Validate the rules files and exit without harmonizing; "
+        "--input/--output are not required.",
+    )
     parser.add_argument(
         "--targets",
         action="append",
@@ -124,9 +130,32 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _validate_rules(rule_paths: Iterable[str]) -> int:
+    # Validate each rules file independently and report every problem found.
+    # Returns a process exit code: 0 if all files are valid, 1 otherwise.
+    exit_code = 0
+    for path in rule_paths:
+        problems = validate_rules_file(path)
+        if problems:
+            exit_code = 1
+            print(f"{path}: INVALID")
+            for problem in problems:
+                print(f"  {problem}")
+        else:
+            print(f"{path}: OK")
+    return exit_code
+
+
 def main(argv: Sequence[str] | None = None) -> None:
     parser = build_parser()
     args = parser.parse_args(argv)
+
+    if args.validate:
+        raise SystemExit(_validate_rules(args.rules))
+
+    if not args.input or not args.output:
+        parser.error("--input and --output are required unless --validate is given.")
+        return
 
     try:
         rules = _load_rules(args.rules)
