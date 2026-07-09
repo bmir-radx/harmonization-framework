@@ -100,16 +100,14 @@ See `docs/electron_sidecar.md` for the full packaging and launch guide.
 Harmonization rules and primitives serialize to JSON-friendly dictionaries with a consistent schema. A rules file is a flat array of rule dicts, written as JSON or YAML depending on the file extension (`.yaml`/`.yml` for YAML, otherwise JSON) — both encode the same structure.
 
 - Rule shape:
-  - `sources` (list of source column names; most rules have exactly one)
-  - `target` (string)
+  - `sources` (list of source variable names)
+  - `target` (target variable name)
   - `operations` (list of operation dicts)
   - `metadata` (optional dict of free-form annotations)
 - Operation shape:
-  - `operation` (snake_case identifier)
+  - `operation` (snake_case identifier - see table below)
   - other fields are snake_case
   - numeric values are serialized as numbers (not strings)
-
-The legacy single-`source` (string) key is still accepted when loading, but rules are always written with `sources`.
 
 Example (JSON):
 
@@ -124,7 +122,7 @@ Example (JSON):
 }
 ```
 
-The same rule in YAML (as emitted by `RuleSet.save("rules.yaml")` — scalar-only collections are rendered inline, and a blank line separates top-level rules):
+The same rule in YAML:
 
 ```yaml
 - sources: [height_in]
