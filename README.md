@@ -41,60 +41,6 @@ Notes:
 - Restrict outputs with `--targets nih_age,nih_sex`.
 - `--dataset-name` sets the dataset name used for metadata columns (defaults to the input file name).
 
-### Sidecar (local API service)
-
-The package exposes a small sidecar entrypoint for running the FastAPI backend
-as a local service (intended to be launched by an Electron app).
-
-Required environment variables:
-- `API_PORT` (required): port to bind.
-- `API_HOST` (optional): defaults to `127.0.0.1`.
-
-Example:
-
-```bash
-API_PORT=54321 API_HOST=127.0.0.1 harmonization-sidecar
-```
-
-When running, the health check is available at:
-
-```
-GET http://127.0.0.1:54321/health/
-```
-
-Graceful shutdown is supported via:
-
-```
-POST http://127.0.0.1:54321/shutdown/
-```
-
-Logs are written to stdout/stderr as JSON lines. Optionally, set `API_LOG_PATH`
-to also write logs to a file.
-
-### Sidecar packaging (CI)
-
-The repository includes a GitHub Actions workflow that builds the sidecar
-executable for macOS, Windows, and Linux. The workflow outputs artifacts:
-
-- `harmonization-sidecar-mac` (tar.gz)
-- `harmonization-sidecar-win` (zip)
-- `harmonization-sidecar-linux` (tar.gz)
-
-Artifacts are built under:
-
-```
-dist/sidecar/<os_short>/
-```
-
-### Electron consumption (high level)
-
-Electron should consume the per-OS artifact produced by the packaging workflow,
-unpack it into the app's bundled resources, and launch the sidecar binary at
-runtime. The launcher sets `API_PORT` (and optionally `API_HOST`) and then polls
-`/health/` before issuing API calls.
-
-See `docs/electron_sidecar.md` for the full packaging and launch guide.
-
 ## Serialization Format
 
 Harmonization rules and primitives serialize to JSON-friendly dictionaries with a consistent schema. A rules file is a flat array of rule dicts, written as JSON or YAML depending on the file extension (`.yaml`/`.yml` for YAML, otherwise JSON) — both encode the same structure.
@@ -290,3 +236,61 @@ For newline-separated input, use:
 ```json
 {"operation": "parse_array", "format": "delimiter", "delimiter": "\\n", "item_type": "integer"}
 ```
+
+## Using the framework in an Electron App
+
+The framework can be integrated into an Electron App
+
+### Sidecar (local API service)
+
+The package exposes a small sidecar entrypoint for running the FastAPI backend
+as a local service (intended to be launched by an Electron app).
+
+Required environment variables:
+- `API_PORT` (required): port to bind.
+- `API_HOST` (optional): defaults to `127.0.0.1`.
+
+Example:
+
+```bash
+API_PORT=54321 API_HOST=127.0.0.1 harmonization-sidecar
+```
+
+When running, the health check is available at:
+
+```
+GET http://127.0.0.1:54321/health/
+```
+
+Graceful shutdown is supported via:
+
+```
+POST http://127.0.0.1:54321/shutdown/
+```
+
+Logs are written to stdout/stderr as JSON lines. Optionally, set `API_LOG_PATH`
+to also write logs to a file.
+
+### Sidecar packaging (CI)
+
+The repository includes a GitHub Actions workflow that builds the sidecar
+executable for macOS, Windows, and Linux. The workflow outputs artifacts:
+
+- `harmonization-sidecar-mac` (tar.gz)
+- `harmonization-sidecar-win` (zip)
+- `harmonization-sidecar-linux` (tar.gz)
+
+Artifacts are built under:
+
+```
+dist/sidecar/<os_short>/
+```
+
+### Electron consumption (high level)
+
+Electron should consume the per-OS artifact produced by the packaging workflow,
+unpack it into the app's bundled resources, and launch the sidecar binary at
+runtime. The launcher sets `API_PORT` (and optionally `API_HOST`) and then polls
+`/health/` before issuing API calls.
+
+See `docs/electron_sidecar.md` for the full packaging and launch guide.
