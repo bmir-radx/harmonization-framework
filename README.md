@@ -34,9 +34,12 @@ harmonize \
 ```
 
 Notes:
+- Rules files may be JSON or YAML; the format is chosen by file extension (`.yaml`/`.yml` for YAML, otherwise JSON). `--rules` can be given multiple times to merge files.
 - Input/output format is auto-detected by file extension (`.csv`/`.tsv`).
+- `--on-missing` controls what happens when a rule's source columns are absent from the input: `error` (default), `warn` (warn and skip), or `skip` (skip silently). A rule is skipped if *any* of its source columns is missing.
 - By default only target columns are written. Add `--include-metadata` to include `source dataset` and `original_id`.
 - Restrict outputs with `--targets nih_age,nih_sex`.
+- `--dataset-name` sets the dataset name used for metadata columns (defaults to the input file name).
 
 ### Sidecar (local API service)
 
@@ -94,22 +97,25 @@ See `docs/electron_sidecar.md` for the full packaging and launch guide.
 
 ## Serialization Format
 
-Harmonization rules and primitives serialize to JSON-friendly dictionaries with a consistent schema:
+Harmonization rules and primitives serialize to JSON-friendly dictionaries with a consistent schema. A rules file is a flat array of rule dicts, written as JSON or YAML depending on the file extension (`.yaml`/`.yml` for YAML, otherwise JSON) — both encode the same structure.
 
 - Rule shape:
-  - `source` (string)
+  - `sources` (list of source column names; most rules have exactly one)
   - `target` (string)
   - `operations` (list of operation dicts)
+  - `metadata` (optional dict of free-form annotations)
 - Operation shape:
   - `operation` (snake_case identifier)
   - other fields are snake_case
   - numeric values are serialized as numbers (not strings)
 
-Example:
+The legacy single-`source` (string) key is still accepted when loading, but rules are always written with `sources`.
+
+Example (JSON):
 
 ```json
 {
-  "source": "height_in",
+  "sources": ["height_in"],
   "target": "height_cm",
   "operations": [
     {"operation": "convert_units", "source_unit": "inch", "target_unit": "cm"},
@@ -117,6 +123,82 @@ Example:
   ]
 }
 ```
+
+The same rule in YAML (as emitted by `RuleSet.save("rules.yaml")` — scalar-only collections are rendered inline, and a blank line separates top-level rules):
+
+```yaml
+- sources: [height_in]
+  target: height_cm
+  operations:
+  - {operation: convert_units, source_unit: inch, target_unit: cm}
+  - {operation: round, precision: 1}
+```
+
+## Multi-Source Rules
+
+A rule with more than one entry in `sources` receives a list of values (one per source, in order) instead of a scalar. Two combinator primitives choose between sources by name:
+
+- `case` switches on a **selector** column: the first branch whose `when` list contains the selector value wins. Use it when the data carries an authoritative flag (e.g. a units column). Selector values are matched as text, and integer-valued floats match their integer form (a `2.0` read from CSV matches `when: ['2']`).
+- `coalesce` picks the first branch whose primary source is **non-null**. Use it when "whichever field was filled in" is the right rule. Branch order defines precedence.
+
+Both share the same branch shape: each branch has one or more `operands` (a source plus its own operation chain), and a branch with multiple operands combines them with a reduction named by `combine` (e.g. `sum`). If no branch matches, the rule yields `default`.
+
+Example (YAML): a weight rule where a units flag selects pounds-as-is or kilograms converted to pounds, followed by the same logic expressed as a coalesce over whichever column is populated:
+
+```yaml
+- sources: [weight_units, weight_lbs, weight_kgs]
+  target: nih_weight
+  operations:
+  - operation: case
+    sources: [weight_units, weight_lbs, weight_kgs]
+    selector: weight_units
+    branches:
+    - when: ['2']
+      operands:
+      - source: weight_lbs
+        operations:
+        - {operation: do_nothing}
+    - when: ['1']
+      operands:
+      - source: weight_kgs
+        operations:
+        - {operation: convert_units, source_unit: kilogram, target_unit: pound}
+        - {operation: round, precision: 0}
+    default: null
+
+- sources: [weight_lbs, weight_kgs]
+  target: nih_weight
+  operations:
+  - operation: coalesce
+    sources: [weight_lbs, weight_kgs]
+    branches:
+    - operands:
+      - source: weight_lbs
+        operations:
+        - {operation: do_nothing}
+    - operands:
+      - source: weight_kgs
+        operations:
+        - {operation: convert_units, source_unit: kilogram, target_unit: pound}
+        - {operation: round, precision: 0}
+    default: null
+```
+
+A multi-operand branch combines several sources — here summing feet and inches into total inches:
+
+```yaml
+- when: ['1']
+  combine: sum
+  operands:
+  - source: height_ft
+    operations:
+    - {operation: convert_units, source_unit: foot, target_unit: inch}
+  - source: height_in
+    operations:
+    - {operation: do_nothing}
+```
+
+For multi-source rules without branching, `map_each` applies a nested operation chain to every source value (e.g. cast each one-hot flag to int) before a list-consuming step like `reduce`.
 
 ## Primitives Reference
 
@@ -126,12 +208,17 @@ All settings are provided in the operation dict for rule serialization.
 | Operation | Purpose | Settings |
 | --- | --- | --- |
 | `bin` | Bucket numeric values into non-overlapping ranges; returns the bin label. | `bins`: list of `{label,start,end}` (ranges must not overlap; inclusive bounds) |
+| `case` | Multi-source combinator: switch on a selector column to choose which branch computes the value (see [Multi-Source Rules](#multi-source-rules)). | `sources` (list of column names)<br>`selector` (must be in `sources`)<br>`branches`: list of `{when, operands, combine}`<br>`default` (optional) |
 | `cast` | Convert values between primitive types. | `source`: type<br>`target`: type (`text`, `integer`, `boolean`, `decimal`, `float`); boolean casting accepts common string/number forms |
+| `coalesce` | Multi-source combinator: first branch whose primary source is non-null wins (see [Multi-Source Rules](#multi-source-rules)). | `sources` (list of column names)<br>`branches`: list of `{operands, combine}` in precedence order<br>`default` (optional) |
 | `convert_date` | Convert date/time strings between formats. | `source_format`, `target_format` (strftime patterns; raises if parsing fails) |
 | `convert_units` | Convert numeric values between units using pint. | `source_unit`, `target_unit` (Unit enum or pint string; raises on invalid units) |
 | `do_nothing` | No-op transform (pass-through). | None |
-| `enum_to_enum` | Map discrete values to other values. | `mapping` (dict)<br>`strict` (bool, default `false`)<br>`default` (optional) |
+| `enum_to_enum` | Map discrete values to other values. | `mapping` (list of `{from,to}` entries; keys keep their native JSON type)<br>`strict` (bool, default `false`)<br>`default` (optional) |
+| `extract_regex` | Extract a value from a string via a regex capture group. | `expression` (regex; validated)<br>`group` (int or group name, default `1`)<br>`flags` (optional list: `IGNORECASE`, `MULTILINE`, `DOTALL`)<br>`strict` (bool, default `true`)<br>`default` (optional; used when `strict=false`) |
 | `format_number` | Format numeric values with fixed decimal places. | `precision` (int, >=0); output is text (string) |
+| `map_each` | Apply a nested operation chain to each element of a list. | `operations` (list of operation dicts); input must be a list/tuple; null elements raise |
+| `missing_code` | Map in-band missing-value codes (e.g. `-999`, `"UNK"`) to real nulls; all other values pass through. | `codes`: list of `{code,label}` entries; should be the FIRST operation in a rule's chain |
 | `normalize_boolean` | Normalize truthy/falsy values to booleans. | `truthy` (list, optional; defaults below)<br>`falsy` (list, optional; defaults below)<br>`strict` (bool, default `true`)<br>`default` (optional; used when `strict=false`) |
 | `normalize_text` | Apply a single text normalization. | `normalization` (`strip`, `lower`, `upper`, `remove_accents`, `remove_punctuation`, `remove_special_characters`) |
 | `offset` | Add an offset to numeric values. | `offset` (number) |
@@ -142,6 +229,7 @@ All settings are provided in the operation dict for rule serialization.
 | `substitute` | Regex-based string substitution. | `expression` (regex; validated)<br>`substitution` (replacement) |
 | `threshold` | Clamp numeric values between bounds. | `lower`, `upper` (numbers; lower <= upper; output type follows numeric promotion) |
 | `truncate` | Cut strings to a max length. | `length` (int, >=0) |
+| `validate_pattern` | Assert a string matches a regex; returns the original value on success. | `expression` (regex; validated)<br>`mode` (`match` default, `fullmatch`, `search`)<br>`flags` (optional list: `IGNORECASE`, `MULTILINE`, `DOTALL`)<br>`strict` (bool, default `true`; raises on mismatch)<br>`default` (optional; used when `strict=false`) |
 
 Defaults for `normalize_boolean` (used when `truthy`/`falsy` are not provided):
 - truthy: `["true","t","yes","y","1",1,true,"on"]`
@@ -154,12 +242,17 @@ Each operation is represented by a JSON-friendly dict. Examples:
 | Operation | Example |
 | --- | --- |
 | `bin` | `{"operation":"bin","bins":[{"label":"low","start":0,"end":9},{"label":"high","start":10,"end":19}]}` |
+| `case` | See [Multi-Source Rules](#multi-source-rules) |
 | `cast` | `{"operation":"cast","source":"text","target":"integer"}` |
+| `coalesce` | See [Multi-Source Rules](#multi-source-rules) |
 | `convert_date` | `{"operation":"convert_date","source_format":"%Y-%m-%d","target_format":"%m/%d/%Y"}` |
 | `convert_units` | `{"operation":"convert_units","source_unit":"inch","target_unit":"cm"}` |
 | `do_nothing` | `{"operation":"do_nothing"}` |
-| `enum_to_enum` | `{"operation":"enum_to_enum","mapping":{"BL":"baseline","FU":"follow_up"},"strict":false,"default":"unknown"}` |
+| `enum_to_enum` | `{"operation":"enum_to_enum","mapping":[{"from":"BL","to":"baseline"},{"from":"FU","to":"follow_up"}],"strict":false,"default":"unknown"}` |
+| `extract_regex` | `{"operation":"extract_regex","expression":"MRN: ([A-Z0-9-]+)","group":1}` |
 | `format_number` | `{"operation":"format_number","precision":2}` |
+| `map_each` | `{"operation":"map_each","operations":[{"operation":"cast","source":"text","target":"integer"}]}` |
+| `missing_code` | `{"operation":"missing_code","codes":[{"code":-999,"label":"not_measured"},{"code":"UNK","label":"unknown"}]}` |
 | `normalize_boolean` | `{"operation":"normalize_boolean","truthy":["yes","y","1"],"falsy":["no","n","0"],"strict":true}` |
 | `normalize_text` | `{"operation":"normalize_text","normalization":"lower"}` |
 | `offset` | `{"operation":"offset","offset":2.5}` |
@@ -170,14 +263,7 @@ Each operation is represented by a JSON-friendly dict. Examples:
 | `substitute` | `{"operation":"substitute","expression":",","substitution":" "}` |
 | `threshold` | `{"operation":"threshold","lower":0,"upper":100}` |
 | `truncate` | `{"operation":"truncate","length":3}` |
-
-### NormalizeBoolean defaults
-
-If you use the `normalize_boolean` primitive without specifying `truthy` or
-`falsy` lists, the following defaults are applied:
-
-- truthy: `["true", "t", "yes", "y", "1", 1, true, "on"]`
-- falsy: `["false", "f", "no", "n", "0", 0, false, "off", ""]`
+| `validate_pattern` | `{"operation":"validate_pattern","expression":"^\\d{4}$","mode":"fullmatch"}` |
 
 ### ParseArray + Reduce for CSV data
 
@@ -186,7 +272,7 @@ When arrays are serialized as text in CSV (for example `"[8,8,8,8,6]"` or
 
 ```json
 {
-  "source": "week_hours",
+  "sources": ["week_hours"],
   "target": "total_hours",
   "operations": [
     {"operation": "parse_array", "format": "json", "item_type": "integer", "strict": true},
