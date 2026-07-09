@@ -7,10 +7,11 @@ logger = logging.getLogger(__name__)
 
 class EnumToEnum(PrimitiveOperation):
     """
-    Operator that maps an input based on its prescribed mapping.
+    Map discrete values to replacement values via `mapping`, serialized as a
+    list of `{from, to}` entries.
 
-    If strict is True, missing mappings raise a KeyError.
-    If strict is False, missing mappings return the configured default (or None).
+    If `strict` is true, unmapped values raise a KeyError.
+    If `strict` is false, unmapped values return `default` (or None).
     """
     def __init__(self, mapping: Dict[Any, Any], default: Any = None, strict: bool = False):
         """

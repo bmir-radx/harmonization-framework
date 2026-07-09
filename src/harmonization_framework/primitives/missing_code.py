@@ -5,7 +5,9 @@ from .base import PrimitiveOperation, isnull, support_iterable
 
 class MissingCode(PrimitiveOperation):
     """
-    Operator that turns a column's missing-value codes into real nulls.
+    Map a column's declared missing-value `codes` (e.g. `-999`, `"UNK"`) to
+    real nulls; every other value passes through unchanged. Serialize codes as
+    a list of `{code, label}` entries, and place this first in a rule's chain.
 
     Real datasets frequently encode "missing" as an in-band sentinel value — a
     numeric code like -999 or a token like "UNK" — rather than as an empty cell.

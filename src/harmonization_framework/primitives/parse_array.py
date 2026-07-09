@@ -7,11 +7,13 @@ from .normalize_boolean import NormalizeBoolean
 
 class ParseArray(PrimitiveOperation):
     """
-    Parse array-like values into Python lists.
+    Parse array-like text (e.g. "[8,8,6]" or "8|8|6") into a list, optionally
+    casting elements to `item_type`. Chain before a list-consuming operation
+    like `reduce`.
 
-    Supported formats:
+    Supported `format` values:
     - json: parse JSON arrays from strings (default)
-    - delimiter: split strings by a configured delimiter
+    - delimiter: split strings by the configured `delimiter`
     """
 
     SUPPORTED_FORMATS = {"json", "delimiter"}

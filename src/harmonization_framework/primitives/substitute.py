@@ -3,7 +3,8 @@ from .base import PrimitiveOperation, handle_null, support_iterable
 
 class Substitute(PrimitiveOperation):
     """
-    Apply a text substitution based on a regex pattern.
+    Replace every match of the regex `expression` with `substitution` in
+    string values.
     """
     def __init__(self, expression: str, substitution: str):
         """

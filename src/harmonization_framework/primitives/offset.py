@@ -3,7 +3,7 @@ from typing import Union
 
 class Offset(PrimitiveOperation):
     """
-    Operator that applies an offset to a numerical value.
+    Add a constant `offset` (number) to numeric values.
     """
     def __init__(self, offset: Union[int, float]):
         if not isinstance(offset, (int, float)):

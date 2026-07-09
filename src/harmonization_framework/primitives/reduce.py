@@ -18,10 +18,12 @@ class Reduction(Enum):
 
 class Reduce(PrimitiveOperation):
     """
-    Reduction operation that transforms N inputs to 1 output.
+    Reduce a list of values to a single value using `reduction`: `any`,
+    `none`, `all`, `one-hot`, or `sum`.
 
-    This primitive expects a single list/tuple of values as input and returns
-    one reduced value (e.g., sum, any, all). It does not accept scalar input.
+    This primitive expects a single list/tuple of values as input (e.g. from
+    `parse_array` or a multi-source rule) and returns one reduced value. It
+    does not accept scalar input.
     """
     def __init__(self, reduction: Reduction):
         self.reduction = reduction

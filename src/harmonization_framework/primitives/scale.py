@@ -3,7 +3,7 @@ from typing import Union
 
 class Scale(PrimitiveOperation):
     """
-    Operator that applies a scaling factor to a numerical value.
+    Multiply numeric values by `scaling_factor` (number).
     """
     def __init__(self, scaling_factor: Union[int, float]):
         if not isinstance(scaling_factor, (int, float)):

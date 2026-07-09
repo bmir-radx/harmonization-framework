@@ -58,13 +58,14 @@ This prints every operation with a short description, for example:
 
 ```
 convert_units
-  Convert numeric values between units using `pint`.
+  Convert numeric values from `source_unit` to `target_unit` — for example
+  `inch` to `cm`, or `kilogram` to `pound`.
 
 do_nothing
-  Operator that does nothing.
+  Pass the value through unchanged. Takes no settings.
 ```
 
-The descriptions are taken from the primitive implementations themselves, so the listing always matches the operations the installed version actually supports.
+The descriptions are taken from the primitive implementations themselves, so the listing always matches the operations the installed version actually supports. Each description names the operation's settings (in backticks), matching the fields used in rules files.
 
 For a machine-readable listing, add `--format json`:
 

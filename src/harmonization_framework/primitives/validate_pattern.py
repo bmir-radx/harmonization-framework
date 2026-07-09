@@ -10,7 +10,8 @@ _VALID_MODES = {"match", "fullmatch", "search"}
 
 class ValidatePattern(PrimitiveOperation):
     """
-    Assert that a string matches a regex pattern.
+    Assert that string values match the regex `expression`, using `mode`
+    `match` (default), `fullmatch`, or `search`.
 
     Returns the original value on success. On failure: raises `ValueError`
     if `strict=True`, else returns `default`. Use as a data-quality gate in

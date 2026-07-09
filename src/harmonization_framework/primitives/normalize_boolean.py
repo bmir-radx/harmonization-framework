@@ -4,7 +4,9 @@ from typing import Any, Iterable, List, Optional
 
 class NormalizeBoolean(PrimitiveOperation):
     """
-    Normalize common truthy/falsy representations to booleans.
+    Normalize truthy/falsy representations to booleans, using the `truthy`
+    and `falsy` value lists (sensible defaults provided). With `strict` false,
+    unrecognized values become `default` instead of raising.
 
     This primitive is intended for datasets that encode booleans as strings
     or numeric flags (e.g., "Yes", "y", "1", "no", "0").

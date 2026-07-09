@@ -20,7 +20,7 @@ def test_cli_list_operations(capsys):
     for name in OPERATION_CLASSES:
         assert f"\n{name}\n" in f"\n{out}"
     # Spot-check that help text accompanies the names.
-    assert "Convert numeric values between units" in out
+    assert "Convert numeric values from `source_unit` to `target_unit`" in out
 
 
 def test_cli_list_operations_json(capsys):

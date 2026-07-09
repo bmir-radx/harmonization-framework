@@ -3,7 +3,8 @@ from typing import Union
 
 class Threshold(PrimitiveOperation):
     """
-    Operator that thresholds a numerical value.
+    Clamp numeric values to the inclusive range [`lower`, `upper`]: values
+    below `lower` become `lower`, values above `upper` become `upper`.
     """
     def __init__(self, lower: Union[int, float], upper: Union[int, float]):
         if not isinstance(lower, (int, float)) or not isinstance(upper, (int, float)):
