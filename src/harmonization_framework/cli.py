@@ -24,13 +24,13 @@ def _split_list(values: Sequence[str]) -> List[str]:
 
 def _read_table(path: str) -> pd.DataFrame:
     _, ext = os.path.splitext(path.lower())
-    sep = "\t" if ext in {".tsv", ".tab"} else ","
+    sep = "\t" if ext == ".tsv" else ","
     return pd.read_csv(path, sep=sep)
 
 
 def _write_table(df: pd.DataFrame, path: str) -> None:
     _, ext = os.path.splitext(path.lower())
-    sep = "\t" if ext in {".tsv", ".tab"} else ","
+    sep = "\t" if ext == ".tsv" else ","
     df.to_csv(path, index=False, sep=sep)
 
 

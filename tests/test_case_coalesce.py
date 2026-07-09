@@ -41,6 +41,14 @@ def test_case_int_selector_matches_string_when():
     assert c.transform([1, 150, 68]) == round(68 * 2.20462)
 
 
+def test_case_float_selector_matches_string_when():
+    c = _weight_case()
+    # pandas reads the flag column as float (its row has blank cells) -> 1.0.
+    # str(1.0) == '1.0' would miss `when` '1'; the integer-valued float must match.
+    assert c.transform([1.0, 150, 68]) == round(68 * 2.20462)
+    assert c.transform([2.0, 150, None]) == 150
+
+
 def test_case_null_selector_returns_default():
     c = _weight_case()
     assert c.transform([None, 150, 68]) is None
