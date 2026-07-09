@@ -11,9 +11,9 @@ class CastType(Enum):
 
 class Cast(PrimitiveOperation):
     """
-    Cast values between supported primitive types.
+    Convert values from `source` type to `target` type: `text`, `integer`,
+    `boolean`, `decimal`, or `float`.
 
-    Supported targets: "text", "integer", "boolean", "decimal", "float".
     Boolean casting accepts common string/number representations.
     """
     def __init__(self, source: str, target: str):

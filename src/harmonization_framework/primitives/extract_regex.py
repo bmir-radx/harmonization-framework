@@ -30,7 +30,8 @@ def _resolve_flags(flag_names: Optional[Iterable[str]]) -> int:
 
 class ExtractRegex(PrimitiveOperation):
     """
-    Extract a value from a string using a regex capture group.
+    Extract capture group `group` from the match of regex `expression`
+    against string values.
 
     Common harmonization use cases include pulling identifiers out of free
     text (e.g., MRN: A12-99) or numeric suffixes out of structured codes.

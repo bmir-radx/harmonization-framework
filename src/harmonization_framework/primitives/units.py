@@ -32,9 +32,11 @@ class CustomUnit:
 
 class ConvertUnits(PrimitiveOperation):
     """
-    Convert numeric values between units using `pint`.
+    Convert numeric values from `source_unit` to `target_unit` — for example
+    `inch` to `cm`, or `kilogram` to `pound`.
 
-    Supports built-in `Unit` enum values or custom unit strings recognized by pint.
+    Units are built-in `Unit` enum values or any unit string recognized by
+    the `pint` library.
     """
     def __init__(self, source: Union[Unit, str], target: Union[Unit, str]):
         if isinstance(source, str):

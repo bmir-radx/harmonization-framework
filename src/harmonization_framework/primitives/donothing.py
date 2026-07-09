@@ -3,7 +3,11 @@ from typing import Any
 
 class DoNothing(PrimitiveOperation):
     """
-    Operator that does nothing.
+    Pass the value through unchanged. Takes no settings.
+
+    Useful as an explicit placeholder where an operation chain is required
+    but no transformation is wanted — for example a `case`/`coalesce` branch
+    that uses a column as-is.
     """
     def __str__(self):
         return "Do Nothing"

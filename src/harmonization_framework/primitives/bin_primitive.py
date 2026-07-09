@@ -16,7 +16,10 @@ class _IntervalNode:
 
 class Bin(PrimitiveOperation):
     """
-    Assign values into histogram bins. 
+    Bucket numeric values into non-overlapping labelled ranges and return the
+    matching bin's label. `bins` is a list of `{label, start, end}` entries
+    with inclusive bounds.
+
     Performs a range query using an interval tree. Bins must not overlap.
     """
     def __init__(self, bins: List[Tuple[Any, Tuple[int, int]]]):

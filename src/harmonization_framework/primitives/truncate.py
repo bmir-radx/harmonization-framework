@@ -2,7 +2,7 @@ from .base import PrimitiveOperation, handle_null, support_iterable
 
 class Truncate(PrimitiveOperation):
     """
-    Operator that truncates a string by cutting off the tail.
+    Shorten strings to at most `length` characters by cutting off the tail.
     """
     def __init__(self, length: int):
         if not isinstance(length, int):

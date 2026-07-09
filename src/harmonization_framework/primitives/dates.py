@@ -3,7 +3,8 @@ from datetime import datetime
 
 class ConvertDate(PrimitiveOperation):
     """
-    Convert between date/time string formats using strptime/strftime.
+    Convert date/time strings from `source_format` to `target_format`, both
+    given as strftime patterns.
 
     Examples:
     - source_format="%Y-%m-%d", target_format="%m/%d/%Y"

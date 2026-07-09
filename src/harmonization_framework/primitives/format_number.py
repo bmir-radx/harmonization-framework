@@ -3,9 +3,10 @@ from typing import Union
 
 class FormatNumber(PrimitiveOperation):
     """
-    Format numeric values to a fixed number of decimal places.
+    Format numeric values as text with exactly `precision` decimal places.
 
     Output is a string, intended for stable presentation (e.g., CSV output).
+    Use `round` instead to keep the value numeric.
     """
     def __init__(self, precision: int):
         if not isinstance(precision, int):

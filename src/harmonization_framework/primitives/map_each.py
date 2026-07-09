@@ -5,7 +5,7 @@ from .base import PrimitiveOperation, isnull
 
 class MapEach(PrimitiveOperation):
     """
-    Apply a nested chain of operations to each element of a list.
+    Apply a nested chain of `operations` to each element of a list.
 
     Useful for multi-source rules where each source value needs the same
     per-element transform (e.g. cast each one-hot flag to int) before a

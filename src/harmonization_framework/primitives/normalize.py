@@ -14,7 +14,8 @@ class Normalization(Enum):
 
 class NormalizeText(PrimitiveOperation):
     """
-    Perform a text normalization operation.
+    Apply a single text `normalization`: `strip`, `lower`, `upper`,
+    `remove_accents`, `remove_punctuation`, or `remove_special_characters`.
     """
     def __init__(self, normalization: Normalization):
         self.normalization = normalization

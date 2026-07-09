@@ -3,7 +3,7 @@ from typing import Union
 
 class Round(PrimitiveOperation):
     """
-    Round numeric values to a specified decimal precision.
+    Round numeric values to `precision` decimal places.
 
     Precision follows Python's built-in `round` behavior.
     Precision must be a non-negative integer.
