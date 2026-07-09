@@ -70,4 +70,6 @@ jobs:
           git add pyproject.toml
           git commit -m "chore: bump version to ${NEW_VERSION}"
           git tag "v${NEW_VERSION}"
-          git push origin main --follow-tags
+          # Push the branch and the tag explicitly: --follow-tags only pushes
+          # annotated tags and would silently skip this lightweight one.
+          git push origin main "v${NEW_VERSION}"
