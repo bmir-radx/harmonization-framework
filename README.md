@@ -22,7 +22,7 @@ pipx install git+https://github.com/bmir-radx/harmonization-framework.git
 
 ## Usage
 
-We recommend using the harmonization framework in an interactive Python environment like a Jupyter notebook. A demonstration is provided in `demo/integration.ipynb`.
+The harmonization framework in an interactive Python environment like a Jupyter notebook. A demonstration is provided in `demo/integration.ipynb` or it can be used as a CLI tool.
 
 ### CLI
 
