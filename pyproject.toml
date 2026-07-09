@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0", "pytest>=7.3.1"]
+requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
