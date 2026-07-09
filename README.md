@@ -46,7 +46,45 @@ Notes:
 - By default only target columns are written. Add `--include-metadata` to include `source dataset` and `original_id`.
 - Restrict outputs with `--targets nih_age,nih_sex`.
 - `--dataset-name` sets the dataset name used for metadata columns (defaults to the input file name).
-- `harmonize --list-operations` prints the available primitive operations with a short description of each. Add `--format json` for a machine-readable listing that includes the full help text per operation (with authoring examples for `case`/`coalesce`) — useful for tools and AI agents that write rules files.
+#### Listing the available operations
+
+To see which primitive operations can be used in a rules file, run:
+
+```bash
+harmonize --list-operations
+```
+
+This prints every operation with a short description, for example:
+
+```
+convert_units
+  Convert numeric values between units using `pint`.
+
+do_nothing
+  Operator that does nothing.
+```
+
+The descriptions are taken from the primitive implementations themselves, so the listing always matches the operations the installed version actually supports.
+
+For a machine-readable listing, add `--format json`:
+
+```bash
+harmonize --list-operations --format json
+```
+
+Each entry then contains the operation name, its one-line summary, and its full help text:
+
+```json
+[
+  {
+    "operation": "case",
+    "summary": "Choose one of several branches by switching on a selector source, ...",
+    "help": "... full help text, including complete authoring examples ..."
+  }
+]
+```
+
+The JSON form is intended for tools and AI agents that generate or edit rules files: the `help` field carries the full documentation for each operation — including complete authoring examples for `case` and `coalesce` — so an agent can write valid operations rather than just name them.
 
 #### Validating rules files
 
