@@ -47,6 +47,18 @@ Notes:
 - Restrict outputs with `--targets nih_age,nih_sex`.
 - `--dataset-name` sets the dataset name used for metadata columns (defaults to the input file name).
 
+#### Validating rules files
+
+Check rules files (JSON or YAML) without running a harmonization by adding `--validate`; `--input` and `--output` are not required:
+
+```bash
+harmonize --validate \
+  --rules rules/radx_up_rules.json \
+  --rules rules/radx_rad_rules.yaml
+```
+
+Each file is checked independently and every problem is reported — syntax errors, missing or malformed `sources`/`target`/`operations`, unknown operations, invalid operation settings, duplicate targets within a file, and empty files. Prints `OK` or `INVALID` per file and exits with a non-zero status if any file has problems, so it can gate a CI step.
+
 ## Serialization Format
 
 Harmonization rules and primitives serialize to JSON-friendly dictionaries with a consistent schema. A rules file is a flat array of rule dicts, written as JSON or YAML depending on the file extension (`.yaml`/`.yml` for YAML, otherwise JSON) — both encode the same structure.

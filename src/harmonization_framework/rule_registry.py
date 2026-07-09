@@ -143,3 +143,84 @@ def _iter_rule_payloads(data):
                 yield rule_payload
         return
     raise ValueError(f"Unrecognized rules file format: expected list or dict, got {type(data).__name__}")
+
+
+def validate_rules_file(rule_file: str) -> List[str]:
+    """
+    Validate a JSON or YAML rules file without applying it.
+
+    Returns a list of human-readable problems; an empty list means the file is
+    valid. Unlike `load`, which raises on the first bad rule, this checks every
+    rule and reports all problems found. The format is chosen by file extension,
+    the same way `load` chooses it.
+    """
+    try:
+        with open(rule_file, "r") as rf:
+            if _is_yaml(rule_file):
+                data = yaml.safe_load(rf)
+            else:
+                data = json.load(rf)
+    except FileNotFoundError:
+        return ["file not found"]
+    except yaml.YAMLError as exc:
+        return [f"invalid YAML: {exc}"]
+    except json.JSONDecodeError as exc:
+        return [f"invalid JSON: {exc}"]
+
+    try:
+        payloads = list(_iter_rule_payloads(data))
+    except ValueError as exc:
+        return [str(exc)]
+
+    if not payloads:
+        return ["file contains no rules"]
+
+    errors: List[str] = []
+    targets_seen = {}
+    for index, payload in enumerate(payloads):
+        errors.extend(_validate_rule_payload(index, payload, targets_seen))
+    return errors
+
+
+def _validate_rule_payload(index, payload, targets_seen) -> List[str]:
+    """
+    Validate one rule payload, returning its problems. `targets_seen` maps
+    target -> rule number for duplicate detection and is updated in place.
+    """
+    from .primitives.factory import deserialize_operation
+
+    if not isinstance(payload, dict):
+        return [f"rule {index + 1}: expected a dict, got {type(payload).__name__}"]
+
+    target = payload.get("target")
+    where = f"rule {index + 1} (target {target!r})" if isinstance(target, str) else f"rule {index + 1}"
+
+    errors = []
+    if not isinstance(target, str) or not target:
+        errors.append(f"{where}: 'target' must be a non-empty string")
+    elif target in targets_seen:
+        errors.append(
+            f"{where}: duplicate target {target!r} (also produced by rule {targets_seen[target]}); "
+            f"only one rule per target survives loading"
+        )
+    else:
+        targets_seen[target] = index + 1
+
+    sources = payload.get("sources", [payload["source"]] if "source" in payload else None)
+    if not isinstance(sources, list) or not sources or not all(isinstance(s, str) and s for s in sources):
+        errors.append(f"{where}: 'sources' must be a non-empty list of column names (or legacy 'source' string)")
+
+    operations = payload.get("operations")
+    if not isinstance(operations, list):
+        errors.append(f"{where}: 'operations' must be a list of operation dicts")
+        return errors
+
+    for op_index, op in enumerate(operations):
+        if not isinstance(op, dict) or "operation" not in op:
+            errors.append(f"{where}: operation {op_index + 1}: expected a dict with an 'operation' key")
+            continue
+        try:
+            deserialize_operation(op)
+        except Exception as exc:
+            errors.append(f"{where}: operation {op_index + 1} ({op['operation']!r}): {exc}")
+    return errors
