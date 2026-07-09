@@ -46,6 +46,7 @@ Notes:
 - By default only target columns are written. Add `--include-metadata` to include `source dataset` and `original_id`.
 - Restrict outputs with `--targets nih_age,nih_sex`.
 - `--dataset-name` sets the dataset name used for metadata columns (defaults to the input file name).
+- `harmonize --list-operations` prints the available primitive operations with a short description of each.
 
 #### Validating rules files
 
@@ -98,14 +99,18 @@ The same rule in YAML:
 
 ## Multi-Source Rules
 
-A rule with more than one entry in `sources` receives a list of values (one per source, in order) instead of a scalar. Two combinator primitives choose between sources by name:
+Most rules read one column and write one column. Sometimes, though, a single harmonized value has to be assembled from several columns. Two situations come up all the time in real datasets:
 
-- `case` switches on a **selector** column: the first branch whose `when` list contains the selector value wins. Use it when the data carries an authoritative flag (e.g. a units column). Selector values are matched as text, and integer-valued floats match their integer form (a `2.0` read from CSV matches `when: ['2']`).
-- `coalesce` picks the first branch whose primary source is **non-null**. Use it when "whichever field was filled in" is the right rule. Branch order defines precedence.
+1. The same measurement lives in *different columns depending on how it was recorded* — for example, weight was entered in `weight_lbs` **or** `weight_kgs`, with a `weight_units` column saying which one was used for each row.
+2. One measurement is *split across columns that must be combined* — for example, height recorded as `height_ft` plus `height_in`.
 
-Both share the same branch shape: each branch has one or more `operands` (a source plus its own operation chain), and a branch with multiple operands combines them with a reduction named by `combine` (e.g. `sum`). If no branch matches, the rule yields `default`.
+To handle these, list every column the rule needs in `sources`, and use the `case` or `coalesce` operation to say how to pick or combine them.
 
-Example (YAML): a weight rule where a units flag selects pounds-as-is or kilograms converted to pounds, followed by the same logic expressed as a coalesce over whichever column is populated:
+### `case`: pick a column based on a flag
+
+Use `case` when the data has a flag column that says where the real value is. `case` looks at one column (the `selector`) and picks a branch by its value. Each branch reads: *when the flag has one of these values (`when`), take the value from this column (`source`) and run these operations on it.*
+
+Here, `weight_units` is `2` when the weight was entered in pounds and `1` when it was entered in kilograms:
 
 ```yaml
 - sources: [weight_units, weight_lbs, weight_kgs]
@@ -115,19 +120,29 @@ Example (YAML): a weight rule where a units flag selects pounds-as-is or kilogra
     sources: [weight_units, weight_lbs, weight_kgs]
     selector: weight_units
     branches:
-    - when: ['2']
+    - when: ['2']              # flag says pounds...
       operands:
-      - source: weight_lbs
+      - source: weight_lbs     # ...use weight_lbs unchanged
         operations:
         - {operation: do_nothing}
-    - when: ['1']
+    - when: ['1']              # flag says kilograms...
       operands:
-      - source: weight_kgs
+      - source: weight_kgs     # ...convert weight_kgs to pounds
         operations:
         - {operation: convert_units, source_unit: kilogram, target_unit: pound}
         - {operation: round, precision: 0}
-    default: null
+    default: null              # flag missing or unrecognized -> null
+```
 
+Row by row this means: if `weight_units` is 2, `nih_weight` is `weight_lbs` as-is (`do_nothing` marks "use unchanged"). If it is 1, `nih_weight` is `weight_kgs` converted to pounds and rounded. If the flag is blank or has any other value, `nih_weight` is null.
+
+Flag values in `when` are written as text, but numeric flags match anyway: a `2` or `2.0` read from CSV matches `when: ['2']`.
+
+### `coalesce`: use whichever column is filled in
+
+Use `coalesce` when there is no flag column — each row simply has its value in one column or the other. Branches are tried in order and the first one whose column is non-empty wins:
+
+```yaml
 - sources: [weight_lbs, weight_kgs]
   target: nih_weight
   operations:
@@ -135,22 +150,26 @@ Example (YAML): a weight rule where a units flag selects pounds-as-is or kilogra
     sources: [weight_lbs, weight_kgs]
     branches:
     - operands:
-      - source: weight_lbs
+      - source: weight_lbs     # prefer weight_lbs when present
         operations:
         - {operation: do_nothing}
     - operands:
-      - source: weight_kgs
+      - source: weight_kgs     # otherwise fall back to weight_kgs
         operations:
         - {operation: convert_units, source_unit: kilogram, target_unit: pound}
         - {operation: round, precision: 0}
-    default: null
+    default: null              # both empty -> null
 ```
 
-A multi-operand branch combines several sources — here summing feet and inches into total inches:
+Row by row: if `weight_lbs` has a value, use it. Otherwise, if `weight_kgs` has a value, convert it to pounds. If both are empty, `nih_weight` is null.
+
+### Adding columns together in a branch
+
+A branch can also combine several columns. List each column under `operands` with the operations that prepare it, and set `combine` to how the prepared values are merged (for example `sum`). Here, height was recorded as feet plus inches, and the harmonized value is total inches:
 
 ```yaml
-- when: ['1']
-  combine: sum
+- when: ['1']                  # flag says feet-and-inches
+  combine: sum                 # add the prepared values together
   operands:
   - source: height_ft
     operations:
@@ -160,7 +179,11 @@ A multi-operand branch combines several sources — here summing feet and inches
     - {operation: do_nothing}
 ```
 
-For multi-source rules without branching, `map_each` applies a nested operation chain to every source value (e.g. cast each one-hot flag to int) before a list-consuming step like `reduce`.
+That is: convert `height_ft` to inches, leave `height_in` as it is, and add the two.
+
+### Multi-source rules without branching
+
+If every source column should get the *same* treatment and then be merged — for example, a set of 0/1 checkbox columns collapsing into one code — no branching is needed: use `map_each` to apply an operation chain to every value, followed by `reduce` to merge the results (see the Primitives Reference below).
 
 ## Primitives Reference
 
